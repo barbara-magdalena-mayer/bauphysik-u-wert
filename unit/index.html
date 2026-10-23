@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
 <title>U-Wert einer Außenwand</title>
 <meta name="description" content="Interaktive Lerneinheit Bauphysik: U-Wert einer Außenwand berechnen und eine Sanierung beurteilen.">
 <style>
@@ -504,6 +505,22 @@ document.getElementById("checkQuiz").onclick = () => {
 };
 
 show(0);
+</script>
+<script>
+/* Nur auf der Werkstatt-Website: Rückweg und Figur. In einer Lernplattform bleibt beides weg. */
+if (location.hostname === "barbara-magdalena-mayer.github.io") {
+  const home = "https://barbara-magdalena-mayer.github.io/";
+  const back = document.createElement("p");
+  back.innerHTML = `<a href="${home}">← Zurück zur Werkstatt</a>`;
+  document.querySelector("footer").prepend(back);
+  const st = document.createElement("style");
+  st.textContent = ".bmm-figur{position:absolute;top:10px;right:12px;z-index:30;display:block;line-height:0}.bmm-figur img{height:96px;width:auto;filter:drop-shadow(0 5px 8px #0004);transition:transform .2s}.bmm-figur:hover img,.bmm-figur:focus-visible img{transform:translateY(-3px)}@media(max-width:640px){.bmm-figur{position:static;display:flex;justify-content:flex-end;padding:12px 16px 20px}.bmm-figur img{height:72px}}@media print{.bmm-figur{display:none}}";
+  document.head.appendChild(st);
+  const fig = document.createElement("a");
+  fig.className = "bmm-figur"; fig.href = home; fig.setAttribute("aria-label", "Barbara – zur Werkstatt");
+  fig.innerHTML = `<img src="${home}bilder/barbara-figur.webp" alt="">`;
+  document.body.appendChild(fig);
+}
 </script>
 </body>
 </html>
