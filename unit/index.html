@@ -140,7 +140,12 @@
   .badge { padding: 4px 10px; border-radius: 99px; font-size: 13px; font-weight: 600; white-space: nowrap; }
   .badge.ok { background: var(--ok-soft); color: var(--ok); }
   .badge.bad { background: var(--bad-soft); color: var(--bad); }
-  .notes-box { margin-top: 16px; }
+  .notes-box { margin-top: 16px; max-width: 72ch; }
+  .df { border-left: 4px solid var(--bad); padding-left: 10px; }
+  .own-error { margin-top: 10px; padding: 10px 12px; border-radius: 6px; background: var(--paper); border: 1px solid var(--bad); }
+  .own-error label { font-weight: 600; font-size: 14px; }
+  .expert { font-size: 14px; margin: 8px 0 0; }
+  .gate-msg { font-size: 14px; margin-top: 10px; color: var(--bad); font-weight: 600; }
   .notes-box label { font-weight: 600; }
   .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 8px; }
   /* KI */
@@ -240,7 +245,14 @@
     <div class="method">
       Wenn jemand eine Behauptung aufstellt, eine Kollegin, eine KI oder du selbst, glaubst du sie nicht einfach.
       Du <strong>setzt ihre Werte in eine freie Spalte ein</strong>, rechnest nach und vergleichst mit deiner eigenen Rechnung.
-      Erst dann urteilst du. Und du schreibst auf, was du eingesetzt hast, was herauskam und wo der Fehler lag.
+      Erst dann urteilst du. Und du schreibst auf, was du eingesetzt hast und was herauskam.
+    </div>
+
+    <h3>5 · Den Denkfehler benennen</h3>
+    <div class="method">
+      Ein Fehler ist erst verstanden, wenn du den <strong>Denkfehler</strong> dahinter benennen kannst, wie in einer mündlichen Prüfung:
+      Was wurde angenommen? Warum stimmt diese Annahme nicht? Das gilt für die Fehler einer KI genauso wie für deine eigenen.
+      Wenn du daraus eine Regel ableitest, legst du sie offen und begründest sie: „Regel: Wenn …, dann … – weil …“
     </div>
   </section>
 
@@ -259,8 +271,13 @@
 
     <div class="notes-box">
       <label for="noteMain">Meine Erkenntnisse</label>
-      <p class="small" style="margin:2px 0 0">Was hast du ausprobiert? Was hat dich überrascht? Wo hast du dich verrechnet, und wie hast du es gemerkt?</p>
+      <p class="small" style="margin:2px 0 0">Was hast du ausprobiert? Was hat dich überrascht? Wo hast du dich geirrt? Benenne den Denkfehler: Was hast du angenommen, und warum stimmte es nicht?</p>
       <textarea id="noteMain" data-note="main" rows="4"></textarea>
+    </div>
+    <div class="notes-box">
+      <label for="noteRules">Meine Regeln</label>
+      <p class="small" style="margin:2px 0 0">Wenn du aus einem Fehler eine Regel ableitest, schreib sie offen auf, immer mit Begründung.</p>
+      <textarea id="noteRules" data-note="rules" rows="3" placeholder="Regel: Wenn …, dann … – weil …"></textarea>
     </div>
 
     <h3 style="margin-top:26px">Eine zweite Perspektive</h3>
@@ -394,7 +411,7 @@ function show(i) {
   document.getElementById("prev").disabled = current === 0;
   const next = document.getElementById("next");
   next.hidden = current === steps.length - 1;
-  next.disabled = current === QUIZ_STEP && !quizDone;   // Test muss bestanden sein
+  next.disabled = current === QUIZ_STEP && !(quizDone && wrongNow.every(([q]) => g(`q${q}_df`).length >= MIN_DF));   // bestanden und alle Fehler erklärt
   if (current === steps.length - 1) renderMyNotes();
   SCORM.set("cmi.core.lesson_location", current);
   window.scrollTo({ top: 0, behavior: "smooth" });
@@ -543,13 +560,21 @@ function bindNote(ta) {
   ta.oninput = () => { notes[ta.dataset.note] = ta.value; save(); };
 }
 bindNote(document.getElementById("noteMain"));
+bindNote(document.getElementById("noteRules"));
 
+const g = k => String(notes[k] || "").trim();
 function notesAsText() {
   const parts = [];
-  if ((notes.main || "").trim()) parts.push("Meine Erkenntnisse:\n" + notes.main.trim());
+  if (g("main")) parts.push("Meine Erkenntnisse:\n" + g("main"));
+  if (g("rules")) parts.push("Meine Regeln:\n" + g("rules"));
   AI_CLAIMS.forEach((c, i) => {
-    const t = (notes["ki" + (i + 1)] || "").trim();
-    if (t) parts.push(`Probe zu KI-Vorschlag ${i + 1}:\n` + t);
+    const n = "ki" + (i + 1);
+    const lines = [["Eingesetzt", g(n + "_ein")], ["Ergebnis", g(n + "_erg")], ["Denkfehler", g(n + "_df")]]
+      .filter(([, v]) => v).map(([k, v]) => `${k}: ${v}`);
+    if (lines.length) parts.push(`Probe zu KI-Vorschlag ${i + 1}:\n` + lines.join("\n"));
+  });
+  QUIZ.forEach((q, i) => {
+    if (g(`q${i}_df`)) parts.push(`Mein Denkfehler bei Testfrage ${i + 1}:\n` + g(`q${i}_df`));
   });
   parts.push("Meine Wände:\n" + cols.map((c, i) => {
     const r = calcU(c.layers);
@@ -560,7 +585,7 @@ function notesAsText() {
 
 function renderMyNotes() {
   const box = document.getElementById("myNotes");
-  const hasNotes = (notes.main || "").trim() || AI_CLAIMS.some((_, i) => (notes["ki" + (i + 1)] || "").trim());
+  const hasNotes = Object.values(notes).some(v => String(v).trim());
   box.textContent = hasNotes ? notesAsText()
     : "Du hast noch nichts notiert. Geh zurück zum Arbeitsblatt und halte fest, was du herausgefunden hast. Gerade die eigenen Fehler sind es wert, aufgeschrieben zu werden.";
 }
@@ -582,19 +607,22 @@ const AI_CLAIMS = [
     text: "Statt zu dämmen, könntest du die Ziegelwand auch auf 36,5 cm verstärken. Dann erreicht sie den Wert von 0,24 ohne Dämmung.",
     answer: "falsch",
     probe: { name: "Probe KI 1: Vollziegel 36,5 cm", layers: [["kalkgipsputz",1.5],["vollziegel",36.5],["kalkzementputz",2]] },
-    explain: "Eingesetzt ergibt die Wand etwa U = 1,34 W/(m²K), also mehr als fünfmal so viel wie erlaubt. Massives Mauerwerk dämmt schlecht. Dicke allein reicht nicht."
+    explain: "Eingesetzt ergibt die Wand etwa U = 1,34 W/(m²K), also mehr als fünfmal so viel wie erlaubt. Massives Mauerwerk dämmt schlecht. Dicke allein reicht nicht.",
+    denkfehler: "„Mehr Masse dämmt besser.“ Ziegel leitet Wärme gut (λ = 0,68). Entscheidend ist R = d / λ, und ein kleines λ bringt viel mehr als eine große Dicke."
   },
   {
     text: "Wenn du statt 14 cm EPS lieber 16 cm Mineralwolle (035) nimmst, kommst du auf etwa 0,20 W/(m²K).",
     answer: "stimmt",
     probe: { name: "Probe KI 2: 16 cm Mineralwolle", layers: [["kalkgipsputz",1.5],["vollziegel",24],["mineralwolle",16],["kalkzementputz",1]] },
-    explain: "Richtig. Eingesetzt ergibt die Wand U ≈ 0,195, gerundet 0,20 W/(m²K). Zwei Zentimeter mehr Dämmung bringen von 0,22 auf 0,20. Das ist eine Verbesserung, aber eine kleine."
+    explain: "Richtig. Eingesetzt ergibt die Wand U ≈ 0,195, gerundet 0,20 W/(m²K). Zwei Zentimeter mehr Dämmung bringen von 0,22 auf 0,20. Das ist eine Verbesserung, aber eine kleine.",
+    denkfehler: "Hier liegt kein Denkfehler vor. Die naheliegende Falle wäre, linear zu denken („doppelte Dämmung, halber U-Wert“). Weil R<sub>si</sub>, Ziegel, Putz und R<sub>se</sub> immer dazukommen und U der Kehrwert ist, sinkt der U-Wert mit jedem Zentimeter langsamer."
   },
   {
     text: "Den Putz kannst du in der Rechnung weglassen. Er ändert am U-Wert praktisch nichts.",
     answer: "kommt drauf an",
     probe: { name: "Probe KI 3: Bestand ohne Putz", layers: [["vollziegel",24]] },
-    explain: "Eingesetzt: Ohne Putz steigt der U-Wert des Bestands von 1,77 auf 1,91 W/(m²K). Das ist ein deutlicher Unterschied. Probiere dasselbe mit der sanierten Wand B: Dort ändert sich erst die dritte Nachkommastelle. Die Aussage ist also eine Faustregel für gedämmte Wände, kein Rechenweg. In einen Nachweis gehört jede Schicht."
+    explain: "Eingesetzt: Ohne Putz steigt der U-Wert des Bestands von 1,77 auf 1,91 W/(m²K). Das ist ein deutlicher Unterschied. Probiere dasselbe mit der sanierten Wand B: Dort ändert sich erst die dritte Nachkommastelle. Die Aussage ist also eine Faustregel für gedämmte Wände, kein Rechenweg. In einen Nachweis gehört jede Schicht.",
+    denkfehler: "Übergeneralisierung: Was für die gedämmte Wand stimmt, wird auf jede Wand übertragen. Ob eine Schicht „nichts ändert“, hängt davon ab, wie groß ihr R im Verhältnis zum Gesamtwiderstand ist."
   }
 ];
 
@@ -617,23 +645,36 @@ function renderAI() {
         <button type="button" data-col="2">in Spalte C</button>
         <button type="button" data-col="3">in Spalte D</button>
       </div>
-      <label>Was habe ich eingesetzt, was kam heraus, wo lag der Fehler?
-        <textarea data-note="ki${i + 1}" rows="3"></textarea></label>
-      <div class="hint">Erst einsetzen, dann urteilen.</div>
+      <label>Eingesetzt: Welche Werte, in welche Spalte?
+        <textarea data-note="ki${i + 1}_ein" rows="2"></textarea></label>
+      <label>Ergebnis: Was kam heraus, im Vergleich zu A und B?
+        <textarea data-note="ki${i + 1}_erg" rows="2"></textarea></label>
+      <label class="df"><strong>Denkfehler:</strong> Welche Annahme steckt hinter der Aussage, und warum stimmt sie nicht? Wenn du keinen Denkfehler findest, begründe, warum die Aussage trägt.
+        <textarea data-note="ki${i + 1}_df" rows="3"></textarea></label>
+      <div class="hint">Erst einsetzen, dann den Denkfehler benennen, dann urteilen.</div>
       <div class="choices" role="group" aria-label="Deine Einschätzung zu Vorschlag ${i + 1}">
         ${["stimmt", "falsch", "kommt drauf an"].map(o => `<button type="button" data-o="${o}" disabled>${o}</button>`).join("")}
       </div>
       <div class="feedback" hidden></div>`;
-    bindNote(card.querySelector("textarea"));
+    card.querySelectorAll("textarea").forEach(bindNote);
     const hint = card.querySelector(".hint");
+    const dfBox = card.querySelector(`textarea[data-note="ki${i + 1}_df"]`);
+    let probed = null;
+    const gate = () => {
+      const ok = probed !== null && dfBox.value.trim().length >= MIN_DF;
+      card.querySelectorAll(".choices button").forEach(x => x.disabled = !ok);
+      hint.textContent = probed === null ? "Erst einsetzen, dann den Denkfehler benennen, dann urteilen."
+        : ok ? `Eingesetzt in Spalte ${LETTERS[probed]}. Jetzt kannst du urteilen.`
+        : `Eingesetzt in Spalte ${LETTERS[probed]}. Vergleiche mit A und B und benenne den Denkfehler, bevor du urteilst.`;
+    };
+    dfBox.addEventListener("input", gate);
     card.querySelectorAll(".probe-row button").forEach(b => b.onclick = () => {
       const k = +b.dataset.col;
       cols[k] = makeCol(c.probe.name, c.probe.layers);
       renderCol(k); renderCompare(); save();
       focusCol(k);
       document.getElementById("compare").scrollIntoView({ behavior: "smooth", block: "start" });
-      card.querySelectorAll(".choices button").forEach(x => x.disabled = false);
-      hint.textContent = `Eingesetzt in Spalte ${LETTERS[k]}. Vergleiche mit A und B, notiere, was du siehst, und urteile dann.`;
+      probed = k; gate();
     });
     card.querySelectorAll(".choices button").forEach(b => b.onclick = () => {
       card.querySelectorAll(".choices button").forEach(x => x.classList.remove("picked"));
@@ -642,7 +683,9 @@ function renderAI() {
       const right = b.dataset.o === c.answer;
       fb.hidden = false;
       fb.className = "feedback " + (right ? "ok" : "bad");
-      fb.innerHTML = `<strong>${right ? "Gut geprüft." : "Schau noch einmal auf deine Probe."}</strong> ${c.explain}`;
+      fb.innerHTML = `<strong>${right ? "Gut geprüft." : "Schau noch einmal auf deine Probe."}</strong> ${c.explain}
+        <p class="expert"><strong>Fachlich benannt:</strong> ${c.denkfehler}</p>
+        <p class="small" style="margin:6px 0 0">Vergleiche mit deiner Formulierung. Fehlt etwas? Ergänze es oben in deinen eigenen Worten.</p>`;
       SCORM.set(`cmi.interactions.${i}.id`, `ki_${i + 1}`);
       SCORM.set(`cmi.interactions.${i}.result`, right ? "correct" : "wrong");
     });
@@ -658,28 +701,34 @@ const QUIZ = [
     q: "Wand A hat U = 0,22, Wand B hat U = 1,77 W/(m²K). Welche Aussage stimmt?",
     opts: ["Wand B dämmt besser, weil der Wert höher ist.", "Wand A lässt weniger Wärme durch.", "Beide dämmen gleich, der U-Wert sagt nur etwas über die Dicke."],
     a: 1,
+    df: ["„Größer ist besser.“ Der U-Wert misst den Wärmeverlust, er ist kein Gütemerkmal.", null, "Den U-Wert mit der Dicke verwechselt. Er beschreibt den Wärmestrom, nicht die Abmessung."],
     ex: "Der U-Wert ist ein Wärmestrom. Je kleiner, desto weniger Wärme geht verloren."
   },
   {
     q: "Wie groß ist der Wärmedurchlasswiderstand R von 10 cm Mineralwolle mit λ = 0,035 W/(mK)?",
     opts: ["0,35 m²K/W", "2,86 m²K/W", "3,50 m²K/W"],
     a: 1,
+    df: ["d und λ multipliziert statt geteilt und die Dicke in cm gelassen (10 · 0,035).", null, "Einheiten durcheinander: Die Dicke nicht richtig in Meter umgerechnet. Dicke immer zuerst in Meter umrechnen, dann durch λ teilen."],
     ex: "R = d / λ = 0,10 m / 0,035 = 2,86 m²K/W. Achtung: Dicke immer in Metern."
   },
   {
     q: "Wie rechnest du aus den Widerständen den U-Wert?",
     opts: ["U = Summe aller 1/R", "U = 1 / (R_si + Summe aller R + R_se)", "U = Summe aller R + R_si + R_se"],
     a: 1,
+    df: ["Die Schichten behandelt, als lägen sie nebeneinander. Sie liegen aber hintereinander, deshalb werden die Widerstände addiert.", null, "Den Kehrwert vergessen: Das ist der Gesamtwiderstand R, nicht der U-Wert."],
     ex: "Die Widerstände liegen hintereinander. Sie werden addiert, dann wird der Kehrwert gebildet."
   },
   {
     q: "Bei der sanierten Wand: Welche Schicht trägt am meisten zum Wärmeschutz bei?",
     opts: ["Der 24 cm dicke Vollziegel", "Die 14 cm EPS-Dämmung", "Beide etwa gleich viel"],
     a: 1,
+    df: ["„Dicker dämmt besser.“ Die Dicke allein sagt wenig, entscheidend ist λ.", null, "Nach Gefühl statt nach Rechnung geurteilt: Die R-Werte der Schichten nicht verglichen."],
     ex: "EPS: R = 4,00. Vollziegel: R ≈ 0,35. Die Dämmung leistet mehr als zehnmal so viel, obwohl sie dünner ist."
   }
 ];
 const PASS = 75;
+const MIN_DF = 12;   // so viele Zeichen braucht eine Denkfehler-Begründung mindestens
+let wrongNow = [];   // [Frage, gewählte Antwort] der aktuell falschen Antworten
 
 const form = document.getElementById("quiz");
 form.innerHTML = QUIZ.map((item, i) => `
@@ -687,7 +736,29 @@ form.innerHTML = QUIZ.map((item, i) => `
     <legend>${i + 1}. ${item.q}</legend>
     ${item.opts.map((o, k) => `<label class="opt"><input type="radio" name="q${i}" value="${k}"> <span>${o}</span></label>`).join("")}
     <div class="explain">${item.ex}</div>
+    <div class="own-error" hidden>
+      <label for="qdf${i}">Dein Denkfehler: Was hast du angenommen, und warum stimmt es nicht?</label>
+      <textarea id="qdf${i}" data-note="q${i}_df" rows="2"></textarea>
+      <p class="expert" hidden></p>
+    </div>
   </fieldset>`).join("");
+form.querySelectorAll("textarea").forEach(ta => { bindNote(ta); ta.addEventListener("input", quizGate); });
+
+function quizGate() {
+  const missing = wrongNow.filter(([i]) => g(`q${i}_df`).length < MIN_DF).map(([i]) => i + 1);
+  wrongNow.forEach(([i, sel]) => {
+    const ex = form.querySelector(`#q${i} .expert`);
+    const ok = g(`q${i}_df`).length >= MIN_DF;
+    ex.hidden = !ok;
+    if (ok) ex.innerHTML = `<strong>Typischer Denkfehler bei dieser Antwort:</strong> ${QUIZ[i].df[sel]} Vergleiche mit deiner Erklärung.`;
+  });
+  const msg = document.getElementById("gateMsg");
+  document.getElementById("checkQuiz").disabled = missing.length > 0;
+  if (msg) msg.textContent = missing.length
+    ? `Bevor es weitergeht: Erkläre deinen Denkfehler bei Frage ${missing.join(", ")}.`
+    : (quizDone && wrongNow.length ? "Alle Fehler erklärt. Du kannst weitergehen." : "");
+  document.getElementById("next").disabled = !(quizDone && missing.length === 0);
+}
 
 document.getElementById("checkQuiz").onclick = () => {
   let right = 0, answered = 0;
@@ -695,6 +766,7 @@ document.getElementById("checkQuiz").onclick = () => {
     const sel = form.querySelector(`input[name=q${i}]:checked`);
     const fs = document.getElementById("q" + i);
     fs.classList.remove("correct", "wrong");
+    fs.querySelector(".own-error").hidden = true;
     if (!sel) return;
     answered++;
     const ok = Number(sel.value) === item.a;
@@ -708,12 +780,19 @@ document.getElementById("checkQuiz").onclick = () => {
   }
   const score = Math.round(right / QUIZ.length * 100);
   const passed = score >= PASS;
+  wrongNow = [];
+  QUIZ.forEach((item, i) => {
+    const sel = Number(form.querySelector(`input[name=q${i}]:checked`).value);
+    if (sel !== item.a) { wrongNow.push([i, sel]); document.querySelector(`#q${i} .own-error`).hidden = false; }
+  });
   out.innerHTML = `<div class="result"><div><div class="small">Ergebnis</div><div class="big">${score} %</div></div>
     <span class="badge ${passed ? "ok" : "bad"}">${passed ? "bestanden" : "noch nicht bestanden"}</span></div>
-    ${passed ? "" : "<p>Lies die Erklärungen bei den roten Fragen, rechne auf dem Arbeitsblatt nach und versuche es noch einmal.</p>"}`;
+    ${wrongNow.length ? "<p>Bei jeder roten Frage erklärst du zuerst deinen Denkfehler, wie in einer mündlichen Prüfung." + (passed ? "" : " Danach rechnest du auf dem Arbeitsblatt nach und versuchst es noch einmal.") + "</p>" : ""}
+    <p class="gate-msg" id="gateMsg" aria-live="polite"></p>`;
   SCORM.reportScore(score, PASS);
   quizDone = passed;
-  document.getElementById("next").disabled = !passed;
+  document.getElementById("checkQuiz").textContent = "Erneut auswerten";
+  quizGate();
   document.getElementById("lmsNote").textContent = SCORM.isLMS
     ? "Dein Ergebnis wurde an die Lernplattform übermittelt."
     : "Hinweis: Die Einheit läuft gerade ohne Lernplattform. Das Ergebnis wird nicht gespeichert.";
@@ -735,6 +814,10 @@ restart.onclick = () => {
   restart.classList.remove("armed"); restart.textContent = "↺ Neu beginnen";
   cols = defaultCols(); notes = {};
   document.getElementById("noteMain").value = "";
+  document.getElementById("noteRules").value = "";
+  wrongNow = [];
+  form.querySelectorAll(".own-error").forEach(o => o.hidden = true);
+  const cq = document.getElementById("checkQuiz"); cq.disabled = false; cq.textContent = "Auswerten";
   aiOn.checked = false; aiArea.innerHTML = ""; aiArea.hidden = true;
   document.getElementById("aiSkip").hidden = false;
   form.reset();

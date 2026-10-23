@@ -19,7 +19,15 @@ So entstehen Einheiten in dieser Werkstatt. Der Standard sorgt dafür, dass jede
 - Drei Aussagen pro Einheit: **eine richtig, eine falsch, eine „kommt drauf an“**
 - Jede Aussage wird durch **Probe durch Einsetzen** geprüft: Ein Knopf setzt ihre Werte in eine freie Spalte des Arbeitsblatts. Die Methode heißt überall genau so.
 - Urteilen erst nach der Probe (Knöpfe vorher gesperrt)
-- Zu jeder Probe ein Notizfeld: „Was habe ich eingesetzt, was kam heraus, wo lag der Fehler?“
+- Zu jeder Probe drei Felder: **Eingesetzt**, **Ergebnis**, **Denkfehler** (oder begründen, warum keiner vorliegt)
+- Urteilen erst nach Probe **und** benanntem Denkfehler; danach den fachlich benannten Denkfehler zum Vergleich zeigen
+
+## 2a · Begründen statt nur Ankreuzen
+
+- Bei jeder falschen Testantwort erklären die Lernenden zuerst ihren eigenen Denkfehler. Erst dann erscheint der typische Denkfehler zu dieser Antwort, und erst dann geht es weiter.
+- Jede falsche Antwortoption hat im Code einen benannten Denkfehler (`df`).
+- Feld „Meine Regeln“: Regeln werden offen gelegt und begründet („Regel: Wenn …, dann … – weil …“).
+- Der Abschluss zeigt den ganzen Erkenntnisweg; er lässt sich kopieren und abgeben.
 - Die falsche Aussage greift einen typischen Denkfehler auf (z. B. „dicker = besser“)
 - Die Rückmeldung erklärt den Weg, nicht nur das Ergebnis
 

@@ -21,16 +21,18 @@ Eine interaktive Lerneinheit zum Wärmeschutz. Lernende sanieren eine Altbauwand
 ## Aufbau
 
 1. **Auftrag**: ein realer Fall (Einfamilienhaus 1958, 24 cm Vollziegel)
-2. **Wissen**: R = d/λ, Übergangswiderstände, U-Wert und die Methode **Probe durch Einsetzen**
-3. **Arbeitsblatt**: vier Wände A–D nebeneinander (Bestand, Sanierung, zwei freie Spalten), eine Vergleichsleiste mit allen U-Werten, das Feld „Meine Erkenntnisse“. Dazu optional die KI: Ihre Aussagen sind gemischt (richtig, falsch, „kommt drauf an“). Jede Aussage wird erst durch Einsetzen in Spalte C oder D geprüft, dann beurteilt. Zu jeder Probe notieren die Lernenden: Was habe ich eingesetzt, was kam heraus, wo lag der Fehler?
-4. **Abschlusstest**: vier Fragen mit Erklärungen
-5. **Abschluss**: Antwort an die Eigentümerin, der eigene Erkenntnisweg (die Notizen), Fragen zum Weiterdenken
+2. **Wissen**: R = d/λ, Übergangswiderstände, U-Wert, die Methode **Probe durch Einsetzen** und **Den Denkfehler benennen**
+3. **Arbeitsblatt**: vier Wände A–D nebeneinander (Bestand, Sanierung, zwei freie Spalten), eine Vergleichsleiste mit allen U-Werten, das Feld „Meine Erkenntnisse“. Dazu optional die KI: Ihre Aussagen sind gemischt (richtig, falsch, „kommt drauf an“). Jede Aussage wird erst durch Einsetzen in Spalte C oder D geprüft, dann beurteilt. Zu jeder Probe notieren die Lernenden, was sie eingesetzt haben und was herauskam, und sie benennen den **Denkfehler**. Erst dann können sie urteilen. Danach sehen sie, wie der Denkfehler fachlich heißt, und vergleichen. Dazu gibt es das Feld „Meine Regeln“: Jede Regel wird offen begründet („Regel: Wenn …, dann … – weil …“).
+4. **Abschlusstest**: vier Fragen mit Erklärungen. Bei jeder falschen Antwort erklären die Lernenden zuerst ihren eigenen Denkfehler, wie in einer mündlichen Prüfung. Erst dann sehen sie den typischen Denkfehler zu ihrer Antwort und können erneut auswerten oder weitergehen.
+5. **Abschluss**: Antwort an die Eigentümerin, der eigene Erkenntnisweg (Erkenntnisse, Regeln, Proben, eigene Denkfehler), Fragen zum Weiterdenken
 
 Oben gibt es immer „↺ Neu beginnen“ (zweimal tippen) und auf der Website „← Werkstatt“. Spalten und Notizen bleiben auf dem eigenen Gerät gespeichert, in einer Lernplattform zusätzlich in `cmi.suspend_data`.
 
 ## Didaktische Idee
 
 Die Einheit ist ein digitaler *dritter Lernort*: kein Ersatz für Unterricht oder Baustelle, sondern ein Raum zum Ausprobieren. Die zuschaltbare KI ist bewusst **fehlbar**. Sie eröffnet Perspektiven, ersetzt aber nicht das eigene Urteil. Wer ihre Aussagen prüft, übt genau die Kompetenz, die im Umgang mit KI im Beruf gebraucht wird.
+
+KI kann jede und jeder benutzen. Was zählt, ist die Begründung: Wer einen Fehler macht, muss ihn darlegen können. Deshalb kommt man in dieser Einheit nicht weiter, ohne den Denkfehler zu benennen, egal ob er von der KI stammt oder von einem selbst.
 
 Im Prototyp sind die drei KI-Aussagen vorbereitet und reagieren noch nicht auf die Wand, die die Lernenden bauen.
 
