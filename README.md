@@ -2,7 +2,7 @@
 
 Eine interaktive Lerneinheit zum Wärmeschutz. Lernende sanieren eine Altbauwand rechnerisch, prüfen das Ergebnis gegen einen Anforderungswert und beurteilen die Vorschläge einer KI, die auch falsch liegen kann.
 
-**[▶ Einheit ausprobieren](https://barbara-magdalena-mayer.github.io/bauphysik-u-wert/)** · **[SCORM-Paket herunterladen](../../releases)**
+**[▶ Einheit ausprobieren](https://barbara-magdalena-mayer.github.io/bauphysik-u-wert/)** · **[SCORM-Paket herunterladen](https://barbara-magdalena-mayer.github.io/bauphysik-u-wert/bauphysik-u-wert_scorm12.zip)**
 
 ---
 

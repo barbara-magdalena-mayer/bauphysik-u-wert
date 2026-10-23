@@ -18,6 +18,11 @@ jobs:
       - uses: actions/checkout@v4
       - name: SCORM-Paket bauen
         run: bash build.sh
+      - name: SCORM-Paket zum Download auf die Seite legen
+        run: |
+          mkdir -p site
+          cp unit/* site/
+          cp dist/bauphysik-u-wert_scorm12.zip site/
       - uses: actions/upload-artifact@v4
         with:
           name: scorm-paket
@@ -25,7 +30,7 @@ jobs:
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: unit
+          path: site
 
   deploy:
     needs: build
