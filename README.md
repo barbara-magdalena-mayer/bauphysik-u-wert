@@ -44,7 +44,7 @@ Zum Abschluss geht es erst nach bestandenem Test (75 %). Der Test lässt sich be
 ./build.sh            # erzeugt dist/bauphysik-u-wert_scorm12.zip
 ```
 
-Das ZIP in der Lernplattform als SCORM-Paket hochladen. Ohne Lernplattform einfach `unit/index.html` im Browser öffnen. Die Einheit läuft auch, wenn `scorm.js` fehlt.
+Das ZIP in der Lernplattform als SCORM-Paket hochladen. Geprüft mit der SCORM-1.2-Schnittstelle [scorm-again](https://github.com/jcputney/scorm-again) (Version 3.4.7): Start, Status, Punktzahl, Lesezeichen, KI-Proben und Notizen kommen ohne Fehler an. In Moodle oder ILIAS selbst ist die Einheit noch nicht erprobt. Ohne Lernplattform einfach `unit/index.html` im Browser öffnen. Die Einheit läuft auch, wenn `scorm.js` fehlt.
 
 Wie neue Einheiten nach demselben Muster entstehen, steht in [`docs/standard.md`](docs/standard.md).
 
