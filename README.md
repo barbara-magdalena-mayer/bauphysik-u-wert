@@ -16,6 +16,7 @@ Eine interaktive Lerneinheit zum Wärmeschutz. Lernende sanieren eine Altbauwand
 | **Format** | HTML/JavaScript, ohne Abhängigkeiten, läuft auf dem Handy |
 | **Standard** | SCORM 1.2: importierbar in Moodle, ILIAS, SAP SuccessFactors Learning u. a. |
 | **Bewertung** | Abschlusstest, Bestehensgrenze 75 %, Rückmeldung an das LMS |
+| **Lizenz** | CC BY 4.0 |
 
 ## Aufbau
 
@@ -51,6 +52,12 @@ Wie neue Einheiten nach demselben Muster entstehen, steht in [`docs/standard.md`
 - Vergleichswert U ≤ 0,24 W/(m²K): Gebäudeenergiegesetz (GEG), Anlage 7, Außenwände bei Änderung
 
 Die Einheit dient dem Lernen, nicht dem rechtsverbindlichen Nachweis.
+
+## Lizenz
+
+[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/deed.de): frei nutzbar und veränderbar, auch kommerziell, mit Namensnennung. Vorschlag: „Bauphysik: Der U-Wert einer Außenwand“ von Barbara Magdalena Mayer, CC BY 4.0. Details in [`LICENSE`](LICENSE).
+
+Entwickelt mit Unterstützung von Claude (KI); Idee, Didaktik und fachliche Prüfung: Barbara Magdalena Mayer.
 
 ---
 
