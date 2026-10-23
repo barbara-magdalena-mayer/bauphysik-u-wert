@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
 <title>U-Wert einer Außenwand</title>
-<meta name="description" content="Interaktive Lerneinheit Bauphysik: U-Wert einer Außenwand berechnen und eine Sanierung beurteilen.">
+<meta name="description" content="Interaktive Lerneinheit Bauphysik: U-Wert einer Außenwand berechnen, Sanierungen vergleichen und Aussagen durch Einsetzen prüfen.">
 <style>
   :root {
     --bg: #f6f3ee;
@@ -35,9 +35,16 @@
     margin: 0; background: var(--bg); color: var(--ink);
     font: 16px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   }
-  header {
-    padding: 20px 16px 12px; max-width: 760px; margin: 0 auto;
+  header { padding: 14px 16px 12px; max-width: 760px; margin: 0 auto; }
+  main { max-width: 760px; margin: 0 auto; padding: 0 16px 40px; }
+  footer { max-width: 760px; margin: 0 auto; padding: 0 16px 30px; }
+  body.wide header, body.wide main, body.wide footer { max-width: 1240px; }
+  .topnav { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; padding-right: 110px; }
+  .topnav a, .topnav button {
+    font: inherit; font-size: 14px; padding: 6px 12px; border-radius: 99px; cursor: pointer;
+    border: 1px solid var(--line); background: var(--paper); color: var(--ink); text-decoration: none;
   }
+  .topnav button.armed { background: var(--bad-soft); border-color: var(--bad); color: var(--bad); font-weight: 600; }
   .kicker { font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); font-weight: 600; }
   h1 { font-size: 26px; line-height: 1.2; margin: 4px 0 10px; }
   h2 { font-size: 20px; margin: 0 0 12px; }
@@ -45,9 +52,10 @@
   .progress { display: flex; gap: 6px; margin-top: 8px; }
   .progress span { flex: 1; height: 5px; border-radius: 3px; background: var(--line); }
   .progress span.done { background: var(--accent); }
-  main { max-width: 760px; margin: 0 auto; padding: 0 16px 40px; }
   section.step { display: none; background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; }
   section.step.active { display: block; }
+  section.step > p, section.step > ul { max-width: 72ch; }
+  section.step, .sheet, .col { min-width: 0; }
   .nav { display: flex; justify-content: space-between; gap: 12px; margin-top: 20px; }
   button {
     font: inherit; border-radius: 8px; padding: 10px 16px; cursor: pointer;
@@ -55,48 +63,98 @@
   }
   button.primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
   button:disabled { opacity: .45; cursor: not-allowed; }
-  button:focus-visible, select:focus-visible, input:focus-visible { outline: 3px solid var(--ai); outline-offset: 2px; }
+  button:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-visible, a:focus-visible { outline: 3px solid var(--ai); outline-offset: 2px; }
   .case {
     border-left: 4px solid var(--accent); background: var(--accent-soft);
-    padding: 12px 14px; border-radius: 0 8px 8px 0; margin: 12px 0;
+    padding: 12px 14px; border-radius: 0 8px 8px 0; margin: 12px 0; max-width: 72ch;
+  }
+  .method {
+    border-left: 4px solid var(--ai); background: var(--ai-soft);
+    padding: 12px 14px; border-radius: 0 8px 8px 0; margin: 12px 0; max-width: 72ch;
   }
   .formula {
     font-family: "Cambria Math", Georgia, serif; font-size: 19px; text-align: center;
-    padding: 12px; background: var(--bg); border-radius: 8px; margin: 10px 0;
+    padding: 12px; background: var(--bg); border-radius: 8px; margin: 10px 0; max-width: 72ch;
   }
   table { width: 100%; border-collapse: collapse; font-size: 15px; }
   th, td { text-align: left; padding: 7px 6px; border-bottom: 1px solid var(--line); vertical-align: middle; }
   th { color: var(--muted); font-weight: 600; font-size: 13px; }
   td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
-  select, input[type=number] {
+  select, input[type=number], input[type=text] {
     font: inherit; padding: 6px 8px; border: 1px solid var(--line); border-radius: 6px;
     background: var(--paper); color: var(--ink); width: 100%;
   }
-  input[type=number] { width: 64px; padding: 6px 4px; text-align: right; }
+  input[type=number] { width: 58px; padding: 6px 4px; text-align: right; }
+  textarea {
+    font: inherit; font-size: 15px; width: 100%; min-height: 84px; padding: 8px 10px; margin-top: 4px;
+    border: 1px solid var(--line); border-radius: 6px; background: var(--paper); color: var(--ink); resize: vertical;
+  }
   .small { font-size: 13px; color: var(--muted); }
   .row-btn { padding: 4px 9px; }
-  .toolbar { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0 14px; }
+
+  /* Arbeitsblatt */
+  .compare {
+    position: sticky; top: 0; z-index: 5; background: var(--paper);
+    display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; padding: 8px 0 10px; margin: 0 0 6px;
+    border-bottom: 1px solid var(--line);
+  }
+  .compare button { padding: 6px 4px; text-align: center; font-size: 12px; line-height: 1.25; border-radius: 8px; }
+  .compare .letter { font-weight: 700; color: var(--accent); }
+  .compare b { display: block; font-size: 17px; font-variant-numeric: tabular-nums; }
+  .compare .ok b { color: var(--ok); }
+  .compare .bad b { color: var(--bad); }
+  .compare small { display: block; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sheet {
+    display: grid; grid-auto-flow: column; grid-auto-columns: minmax(256px, 1fr); gap: 12px;
+    overflow-x: auto; scroll-snap-type: x mandatory; padding: 4px 2px 10px; -webkit-overflow-scrolling: touch;
+  }
+  .col { scroll-snap-align: start; border: 1px solid var(--line); border-radius: 8px; padding: 10px; background: var(--bg); min-width: 0; transition: box-shadow .3s; }
+  .col.flash { box-shadow: 0 0 0 3px var(--ai); }
+  .col-head { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
+  .col-letter { font-weight: 700; background: var(--accent); color: #fff; border-radius: 6px; padding: 2px 9px; }
+  .col-name { font-weight: 600; }
+  .col-tools { display: flex; gap: 6px; margin-bottom: 6px; }
+  .col-tools select { flex: 1; min-width: 0; font-size: 14px; }
+  .col-tools button { padding: 6px 10px; font-size: 14px; white-space: nowrap; }
+  .layer { border-bottom: 1px solid var(--line); padding: 6px 0; }
+  .layer select { font-size: 14px; padding: 5px 6px; }
+  .layer-row { display: flex; align-items: center; gap: 6px; margin-top: 4px; font-size: 14px; }
+  .layer-row .r { margin-left: auto; font-variant-numeric: tabular-nums; }
+  .layer-row .unit { color: var(--muted); font-size: 13px; }
+  .layers-head { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); font-weight: 600; padding: 4px 0; border-bottom: 1px solid var(--line); }
+  .empty-layers { color: var(--muted); font-size: 13px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+  .rsum-line { display: flex; justify-content: space-between; gap: 8px; font-size: 13px; color: var(--muted); padding: 6px 0; }
+  .rsum-line .rsum { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+  .swipe-hint { display: none; }
+  @media (max-width: 700px) { .swipe-hint { display: block; } }
   /* Wandschnitt */
-  .wall { display: flex; height: 120px; border-radius: 6px; overflow: hidden; border: 1px solid var(--line); margin: 14px 0 4px; }
+  .wall { display: flex; height: 56px; border-radius: 6px; overflow: hidden; border: 1px solid var(--line); margin: 10px 0 2px; background: var(--paper); }
   .wall div { position: relative; min-width: 3px; }
   .wall div span {
     position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-    white-space: nowrap; font-size: 12px; font-weight: 600; color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,.7);
+    white-space: nowrap; font-size: 11px; font-weight: 600; color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,.7);
   }
   .wall-labels { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); }
-  .result {
-    display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 4px 12px;
-    margin-top: 16px; padding: 14px; border-radius: 8px; background: var(--bg);
-  }
-  .result .big { font-size: 28px; font-weight: 700; font-variant-numeric: tabular-nums; }
-  .badge { padding: 4px 10px; border-radius: 99px; font-size: 14px; font-weight: 600; }
+  .u-line { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-top: 8px; }
+  .u-line .big { white-space: nowrap; font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .badge { padding: 4px 10px; border-radius: 99px; font-size: 13px; font-weight: 600; white-space: nowrap; }
   .badge.ok { background: var(--ok-soft); color: var(--ok); }
   .badge.bad { background: var(--bad-soft); color: var(--bad); }
+  .notes-box { margin-top: 16px; }
+  .notes-box label { font-weight: 600; }
+  .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 8px; }
   /* KI */
-  .ai-toggle { display: flex; align-items: center; gap: 10px; padding: 12px; border: 1px dashed var(--ai); border-radius: 8px; }
-  .ai-card { border: 1px solid var(--ai); background: var(--ai-soft); border-radius: 8px; padding: 12px 14px; margin: 12px 0; }
+  .ai-toggle { display: flex; align-items: center; gap: 10px; padding: 12px; border: 1px dashed var(--ai); border-radius: 8px; max-width: 72ch; }
+  .ai-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; margin-top: 12px; }
+  .ai-card { border: 1px solid var(--ai); background: var(--ai-soft); border-radius: 8px; padding: 12px 14px; }
   .ai-card .who { font-size: 12px; font-weight: 700; color: var(--ai); letter-spacing: .05em; text-transform: uppercase; }
-  .choices { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+  .probe-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: 10px; }
+  .probe-row strong { font-size: 14px; margin-right: 2px; }
+  .probe-row button { padding: 6px 10px; font-size: 14px; border-color: var(--ai); }
+  .ai-card label { display: block; font-size: 14px; margin-top: 10px; }
+  .hint { font-size: 13px; color: var(--muted); margin-top: 8px; }
+  .choices { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+  .choices button { padding: 8px 12px; }
   .choices button.picked { border-color: var(--ai); outline: 2px solid var(--ai); }
   .feedback { margin-top: 10px; padding: 10px 12px; border-radius: 6px; font-size: 15px; }
   .feedback.ok { background: var(--ok-soft); }
@@ -109,17 +167,26 @@
   fieldset.wrong { border-color: var(--bad); background: var(--bad-soft); }
   .explain { font-size: 14px; margin-top: 6px; display: none; }
   fieldset.correct .explain, fieldset.wrong .explain { display: block; }
+  .result {
+    display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 4px 12px;
+    margin-top: 16px; padding: 14px; border-radius: 8px; background: var(--bg);
+  }
+  .result .big { font-size: 28px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .my-notes { white-space: pre-wrap; background: var(--bg); border-radius: 8px; padding: 12px 14px; font-size: 15px; max-width: 72ch; }
   footer a { color: inherit; }
-  footer { max-width: 760px; margin: 0 auto; padding: 0 16px 30px; }
   @media (max-width: 520px) {
-    section.step { padding: 16px; }
-    #layers td:nth-child(3), thead th:nth-child(3), tfoot td:nth-child(2) { display: none; } /* λ-Spalte auf dem Handy ausblenden */
+    section.step { padding: 14px; }
+    .topnav { padding-right: 0; }
   }
 </style>
 </head>
 <body>
 
 <header>
+  <nav class="topnav" aria-label="Navigation">
+    <a id="homeLink" href="https://barbara-magdalena-mayer.github.io/" hidden>← Werkstatt</a>
+    <button type="button" id="restart">↺ Neu beginnen</button>
+  </nav>
   <div class="kicker">Bauphysik · Wärmeschutz</div>
   <h1>Der U-Wert einer Außenwand</h1>
   <div class="progress" aria-hidden="true" id="progress"></div>
@@ -139,10 +206,10 @@
     <ul>
       <li>den Wärmedurchlasswiderstand einer Schicht berechnen,</li>
       <li>den U-Wert einer mehrschichtigen Wand bestimmen,</li>
-      <li>eine Sanierungsvariante mit einem Anforderungswert vergleichen,</li>
-      <li>Aussagen einer KI fachlich prüfen, statt sie zu übernehmen.</li>
+      <li>mehrere Sanierungsvarianten nebeneinander vergleichen,</li>
+      <li>Aussagen, auch die einer KI, durch <strong>Probe durch Einsetzen</strong> prüfen und deinen Erkenntnisweg festhalten.</li>
     </ul>
-    <p class="small">Dauer: ca. 20 Minuten. Bestehensgrenze im Abschlusstest: 75 %.</p>
+    <p class="small">Dauer: ca. 25 Minuten. Bestehensgrenze im Abschlusstest: 75 %.</p>
   </section>
 
   <!-- 2 · Wissen -->
@@ -160,7 +227,7 @@
     <h3>2 · Dazu kommen die Oberflächen</h3>
     <p>An der Innen- und Außenoberfläche geht Wärme von der Luft ins Bauteil über und umgekehrt. Bei einer
       Außenwand (Wärmestrom horizontal) rechnet man mit:</p>
-    <table>
+    <table style="max-width:420px">
       <tr><td>R<sub>si</sub> innen</td><td class="num">0,13 m²K/W</td></tr>
       <tr><td>R<sub>se</sub> außen</td><td class="num">0,04 m²K/W</td></tr>
     </table>
@@ -168,66 +235,60 @@
     <h3>3 · Alles zusammen</h3>
     <div class="formula">U = 1 / (R<sub>si</sub> + R<sub>1</sub> + R<sub>2</sub> + … + R<sub>se</sub>)</div>
     <p>Die Widerstände werden <strong>addiert</strong>, erst das Ergebnis wird in den U-Wert umgerechnet.</p>
+
+    <h3>4 · Probe durch Einsetzen</h3>
+    <div class="method">
+      Wenn jemand eine Behauptung aufstellt, eine Kollegin, eine KI oder du selbst, glaubst du sie nicht einfach.
+      Du <strong>setzt ihre Werte in eine freie Spalte ein</strong>, rechnest nach und vergleichst mit deiner eigenen Rechnung.
+      Erst dann urteilst du. Und du schreibst auf, was du eingesetzt hast, was herauskam und wo der Fehler lag.
+    </div>
   </section>
 
-  <!-- 3 · Werkstatt -->
-  <section class="step" data-title="Werkstatt">
-    <h2>Wand bauen und rechnen</h2>
-    <p>Baue die Wand von innen nach außen auf. Starte mit dem Bestand, dann prüfe die Sanierung.</p>
-    <div class="toolbar">
-      <button type="button" data-preset="bestand">Bestand 1958</button>
-      <button type="button" data-preset="saniert">Bestand + 14 cm EPS</button>
-      <button type="button" id="addLayer">+ Schicht</button>
+  <!-- 3 · Arbeitsblatt: Werkstatt + zweite Perspektive -->
+  <section class="step" data-title="Arbeitsblatt" data-wide="1">
+    <h2>Dein Arbeitsblatt</h2>
+    <p>Vier Wände nebeneinander: <strong>A</strong> ist der Bestand, <strong>B</strong> die geplante Sanierung,
+      <strong>C</strong> und <strong>D</strong> sind frei für eigene Versuche und für die Probe durch Einsetzen.
+      Baue jede Wand von innen nach außen auf. Die Leiste oben zeigt dir alle vier U-Werte auf einen Blick.</p>
+
+    <div class="compare" id="compare" role="group" aria-label="Vergleich der vier Wände"></div>
+    <p class="small swipe-hint">← Seitlich wischen, um zwischen A, B, C und D zu wechseln →</p>
+    <div class="sheet" id="sheet"></div>
+    <p class="small">Vergleichswert: U ≤ 0,24 W/(m²K) – Höchstwert für Außenwände bei Sanierung nach GEG, Anlage 7.
+      λ-Werte sind typische Bemessungswerte nach DIN 4108-4. In der Praxis gelten die Angaben des Herstellers.</p>
+
+    <div class="notes-box">
+      <label for="noteMain">Meine Erkenntnisse</label>
+      <p class="small" style="margin:2px 0 0">Was hast du ausprobiert? Was hat dich überrascht? Wo hast du dich verrechnet, und wie hast du es gemerkt?</p>
+      <textarea id="noteMain" data-note="main" rows="4"></textarea>
     </div>
 
-    <table aria-describedby="uResult">
-      <thead>
-        <tr><th>Schicht (innen → außen)</th><th class="num">d [cm]</th><th class="num">λ</th><th class="num">R</th><th></th></tr>
-      </thead>
-      <tbody id="layers"></tbody>
-      <tfoot>
-        <tr><td colspan="2" class="small">+ R<sub>si</sub> 0,13 + R<sub>se</sub> 0,04</td><td></td><td class="num" id="rTotal" style="white-space:nowrap"></td><td></td></tr>
-      </tfoot>
-    </table>
-
-    <div class="wall" id="wall" role="img" aria-label="Schnitt durch die Wand"></div>
-    <div class="wall-labels"><span>innen</span><span id="wallThickness"></span><span>außen</span></div>
-
-    <div class="result" id="uResult" aria-live="polite">
-      <div>
-        <div class="small">U-Wert der Wand</div>
-        <div class="big" id="uValue">–</div>
-      </div>
-      <div id="uBadge"></div>
-      <div class="small" style="grid-column: 1 / -1">
-        Vergleichswert: U ≤ 0,24 W/(m²K) – Höchstwert für Außenwände bei Sanierung nach GEG, Anlage 7.
-      </div>
-    </div>
-    <p class="small">λ-Werte sind typische Bemessungswerte nach DIN 4108-4. In der Praxis gelten die Angaben des Herstellers.</p>
-  </section>
-
-  <!-- 4 · Zweite Perspektive -->
-  <section class="step" data-title="KI-Perspektive">
-    <h2>Eine zweite Perspektive</h2>
+    <h3 style="margin-top:26px">Eine zweite Perspektive</h3>
     <p>Du kannst eine KI dazuschalten. Sie bringt Ideen ein, die du vielleicht nicht hattest,
-      <strong>aber sie kann auch falsch liegen.</strong> Deine Aufgabe: Prüfe jede Aussage mit dem, was du gerade gerechnet hast.</p>
+      <strong>aber sie kann auch falsch liegen.</strong> Prüfe jede Aussage durch Einsetzen in Spalte C oder D, bevor du urteilst.</p>
     <div class="ai-toggle">
       <input type="checkbox" id="aiOn">
       <label for="aiOn"><strong>KI dazuschalten</strong></label>
     </div>
-    <div id="aiArea" hidden></div>
-    <p class="small" id="aiSkip">Du kannst diesen Schritt auch überspringen. Er zählt nicht zur Bewertung.</p>
+    <div id="aiArea" class="ai-list" hidden></div>
+    <p class="small" id="aiSkip">Dieser Teil ist freiwillig und zählt nicht zur Bewertung.</p>
+
+    <div class="row">
+      <button type="button" id="copyNotes">Notizen kopieren</button>
+      <span class="small" id="copyMsg" aria-live="polite"></span>
+    </div>
   </section>
 
-  <!-- 5 · Test -->
-  <section class="step" data-title="Test">
+  <!-- 4 · Test -->
+  <section class="step" data-title="Test" id="quizStep">
     <h2>Abschlusstest</h2>
+    <p class="small">Du kannst jederzeit zurück zum Arbeitsblatt gehen und nachrechnen. Deine Spalten bleiben erhalten.</p>
     <form id="quiz"></form>
     <button type="button" class="primary" id="checkQuiz">Auswerten</button>
     <div id="quizResult" aria-live="polite" style="margin-top:14px"></div>
   </section>
 
-  <!-- 6 · Abschluss -->
+  <!-- 5 · Abschluss -->
   <section class="step" data-title="Abschluss">
     <h2>Zurück zur Eigentümerin</h2>
     <div class="case" id="finalAnswer">
@@ -235,9 +296,11 @@
       Der Höchstwert von 0,24 wird eingehalten, die Antwort lautet also <strong>ja</strong>, und zwar mit wenig Reserve.
       Mit einem Dämmstoff der Gruppe 040 (λ = 0,040) wären bei gleicher Dicke etwa 0,25 W/(m²K) erreicht. Das wäre zu wenig.
     </div>
+    <h3>Dein Erkenntnisweg</h3>
+    <div class="my-notes" id="myNotes"></div>
     <h3>Zum Weiterdenken</h3>
     <ul>
-      <li>Warum lohnt sich der erste Zentimeter Dämmung mehr als der zwanzigste?</li>
+      <li>Warum lohnt sich der erste Zentimeter Dämmung mehr als der zwanzigste? Probiere es in Spalte C aus.</li>
       <li>Was passiert an Fensterlaibungen und Deckenauflagern? (Stichwort: Wärmebrücken)</li>
       <li>Welche Rolle spielt die Lage der Dämmung (innen oder außen) für Tauwasser in der Wand?</li>
     </ul>
@@ -256,8 +319,8 @@
 
 <script src="scorm.js"></script>
 <script>
-/* Ersatz, falls scorm.js fehlt (z. B. GitHub Pages, lokale Vorschau) */
-window.SCORM = window.SCORM || { isLMS: false, set() {}, reportScore() {} };
+/* Ersatz, falls scorm.js fehlt (z. B. index.html allein eingebunden) */
+if (typeof SCORM === "undefined") window.SCORM = { isLMS: false, init() {}, set() {}, commit() {}, reportScore() {}, finish() {} };
 
 /* ============================================================
    Daten
@@ -276,30 +339,63 @@ const MATERIALS = {
   "eps040":        { name: "EPS-Dämmung (040)",      lambda: 0.040, color: "#ece6d2" }
 };
 const RSI = 0.13, RSE = 0.04, U_MAX = 0.24;
+const LETTERS = "ABCD";
 
 const PRESETS = {
-  bestand: [["kalkgipsputz",1.5],["vollziegel",24],["kalkzementputz",2]],
-  saniert: [["kalkgipsputz",1.5],["vollziegel",24],["eps",14],["kalkzementputz",1]]
+  bestand: { name: "Bestand 1958",        layers: [["kalkgipsputz",1.5],["vollziegel",24],["kalkzementputz",2]] },
+  saniert: { name: "Bestand + 14 cm EPS", layers: [["kalkgipsputz",1.5],["vollziegel",24],["eps",14],["kalkzementputz",1]] },
+  leer:    { name: "Freie Spalte",        layers: [] }
 };
 
 const fmt = (n, d = 2) => n.toLocaleString("de-DE", { minimumFractionDigits: d, maximumFractionDigits: d });
+const makeCol = (name, list) => ({ name, layers: list.map(([mat, cm]) => ({ mat, cm })) });
+const defaultCols = () => [
+  makeCol(PRESETS.bestand.name, PRESETS.bestand.layers),
+  makeCol(PRESETS.saniert.name, PRESETS.saniert.layers),
+  makeCol("Frei für eigene Versuche", []),
+  makeCol("Frei für eigene Versuche", [])
+];
+
+/* ============================================================
+   Speichern (nur auf diesem Gerät; im LMS zusätzlich suspend_data)
+   ============================================================ */
+const STORE = "uwert-arbeitsblatt-v2";
+let cols = defaultCols();
+let notes = {};
+try {
+  const saved = JSON.parse(localStorage.getItem(STORE) || "null");
+  if (saved && Array.isArray(saved.cols) && saved.cols.length === 4 &&
+      saved.cols.every(c => Array.isArray(c.layers) && c.layers.every(l => MATERIALS[l.mat] && l.cm > 0))) {
+    cols = saved.cols; notes = saved.notes || {};
+  }
+} catch (e) { /* kein Speicher verfügbar */ }
+
+function save() {
+  try { localStorage.setItem(STORE, JSON.stringify({ cols, notes })); } catch (e) {}
+  const text = JSON.stringify(notes);
+  SCORM.set("cmi.suspend_data", text.length > 4000 ? text.slice(0, 4000) : text);
+}
 
 /* ============================================================
    Schritt-Navigation
    ============================================================ */
 const steps = [...document.querySelectorAll("section.step")];
+const QUIZ_STEP = steps.findIndex(s => s.id === "quizStep");
 let current = 0;
+let quizDone = false;
 const progress = document.getElementById("progress");
 steps.forEach(() => progress.appendChild(document.createElement("span")));
 
 function show(i) {
   current = Math.max(0, Math.min(steps.length - 1, i));
   steps.forEach((s, k) => s.classList.toggle("active", k === current));
+  document.body.classList.toggle("wide", steps[current].dataset.wide === "1");
   [...progress.children].forEach((p, k) => p.classList.toggle("done", k <= current));
   document.getElementById("prev").disabled = current === 0;
   const next = document.getElementById("next");
   next.hidden = current === steps.length - 1;
-  next.disabled = current === 4 && !quizDone;   // Test muss ausgewertet sein
+  next.disabled = current === QUIZ_STEP && !quizDone;   // Test muss bestanden sein
+  if (current === steps.length - 1) renderMyNotes();
   SCORM.set("cmi.core.lesson_location", current);
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
@@ -307,105 +403,207 @@ document.getElementById("prev").onclick = () => show(current - 1);
 document.getElementById("next").onclick = () => show(current + 1);
 
 /* ============================================================
-   Werkstatt: Wandrechner
+   Arbeitsblatt: vier Spalten
    ============================================================ */
-let layers = [];
-const tbody = document.getElementById("layers");
-
-function materialOptions(selected) {
-  return Object.entries(MATERIALS)
-    .map(([k, m]) => `<option value="${k}" ${k === selected ? "selected" : ""}>${m.name}</option>`).join("");
-}
-
-function renderLayers() {
-  tbody.innerHTML = "";
-  layers.forEach((l, i) => {
-    const m = MATERIALS[l.mat];
-    const r = (l.cm / 100) / m.lambda;
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td><select aria-label="Material Schicht ${i + 1}">${materialOptions(l.mat)}</select></td>
-      <td class="num"><input type="number" min="0.5" max="60" step="0.5" value="${l.cm}" aria-label="Dicke Schicht ${i + 1} in cm"></td>
-      <td class="num">${fmt(m.lambda, 3)}</td>
-      <td class="num">${fmt(r, 3)}</td>
-      <td><button type="button" class="row-btn" aria-label="Schicht ${i + 1} entfernen">✕</button></td>`;
-    tr.querySelector("select").onchange = e => { l.mat = e.target.value; renderLayers(); };
-    tr.querySelector("input").oninput = e => {
-      const v = parseFloat(e.target.value);
-      if (v > 0) { l.cm = v; updateResult(); updateRow(tr, l); }
-    };
-    tr.querySelector("button").onclick = () => { layers.splice(i, 1); renderLayers(); };
-    tbody.appendChild(tr);
-  });
-  updateResult();
-}
-
-function updateRow(tr, l) {
-  tr.children[3].textContent = fmt((l.cm / 100) / MATERIALS[l.mat].lambda, 3);
-}
+const sheet = document.getElementById("sheet");
+const compare = document.getElementById("compare");
 
 function calcU(list) {
+  if (!list.length) return null;
   const rLayers = list.reduce((s, l) => s + (l.cm / 100) / MATERIALS[l.mat].lambda, 0);
   const rTotal = RSI + rLayers + RSE;
   return { rTotal, u: 1 / rTotal };
 }
 
-function updateResult() {
-  const { rTotal, u } = calcU(layers);
-  document.getElementById("rTotal").textContent = "Σ " + fmt(rTotal, 3);
-  document.getElementById("uValue").textContent = layers.length ? fmt(u, 2) + " W/(m²K)" : "–";
-  const ok = u <= U_MAX;
-  document.getElementById("uBadge").innerHTML = layers.length
-    ? `<span class="badge ${ok ? "ok" : "bad"}">${ok ? "erfüllt" : "nicht erfüllt"}</span>` : "";
+function materialOptions(selected) {
+  return Object.entries(MATERIALS)
+    .map(([k, m]) => `<option value="${k}" ${k === selected ? "selected" : ""}>${m.name} · λ ${fmt(m.lambda, 3)}</option>`).join("");
+}
 
-  // Wandschnitt
-  const total = layers.reduce((s, l) => s + l.cm, 0);
-  const wall = document.getElementById("wall");
-  wall.innerHTML = layers.map(l => {
+function buildSheet() {
+  sheet.innerHTML = "";
+  cols.forEach((_, i) => {
+    const el = document.createElement("div");
+    el.className = "col"; el.id = "col" + i;
+    el.setAttribute("role", "group"); el.setAttribute("aria-label", "Wand " + LETTERS[i]);
+    sheet.appendChild(el);
+    renderCol(i);
+  });
+  renderCompare();
+}
+
+function renderCol(i) {
+  const c = cols[i], L = LETTERS[i], el = document.getElementById("col" + i);
+  const rows = c.layers.length ? c.layers.map((l, k) => `
+      <div class="layer">
+        <select aria-label="Material Schicht ${k + 1}, Wand ${L}">${materialOptions(l.mat)}</select>
+        <div class="layer-row">
+          <span class="unit">d</span>
+          <input type="number" min="0.5" max="80" step="0.5" value="${l.cm}" aria-label="Dicke Schicht ${k + 1}, Wand ${L}, in cm">
+          <span class="unit">cm</span>
+          <span class="r" aria-label="Wärmedurchlasswiderstand"></span>
+          <button type="button" class="row-btn" aria-label="Schicht ${k + 1} aus Wand ${L} entfernen">✕</button>
+        </div>
+      </div>`).join("")
+    : `<div class="empty-layers">Noch keine Schicht. Lade eine Vorlage oder füge eine Schicht hinzu.</div>`;
+  el.innerHTML = `
+    <div class="col-head"><span class="col-letter" aria-hidden="true">${L}</span>
+      <input type="text" class="col-name" aria-label="Bezeichnung Wand ${L}"></div>
+    <div class="col-tools">
+      <select class="preset" aria-label="Vorlage in Wand ${L} laden">
+        <option value="">Vorlage laden …</option>
+        <option value="bestand">Bestand 1958</option>
+        <option value="saniert">Bestand + 14 cm EPS</option>
+        <option value="leer">Spalte leeren</option>
+      </select>
+      <button type="button" class="add">+ Schicht</button>
+    </div>
+    <div class="layers-head"><span>Schichten (innen → außen)</span><span>R [m²K/W]</span></div>
+    <div class="layers">${rows}</div>
+    <div class="rsum-line"><span>+ R<sub>si</sub> + R<sub>se</sub> = 0,17</span><span class="rsum"></span></div>
+    <div class="wall" role="img" aria-label="Schnitt durch Wand ${L}"></div>
+    <div class="wall-labels"><span>innen</span><span class="thick"></span><span>außen</span></div>
+    <div class="u-line" aria-live="polite">
+      <div><div class="small">U-Wert Wand ${L}</div><div class="big uval">–</div></div>
+      <div class="ubadge"></div>
+    </div>`;
+  const name = el.querySelector(".col-name");
+  name.value = c.name;
+  name.oninput = () => { c.name = name.value; renderCompare(); save(); };
+  el.querySelector(".preset").onchange = e => {
+    const p = PRESETS[e.target.value]; if (!p) return;
+    cols[i] = makeCol(e.target.value === "leer" ? "Frei für eigene Versuche" : p.name, p.layers);
+    renderCol(i); renderCompare(); save();
+  };
+  el.querySelector(".add").onclick = () => {
+    c.layers.push({ mat: "mineralwolle", cm: 10 });
+    renderCol(i); renderCompare(); save();
+    const sel = el.querySelectorAll(".layer select"); sel[sel.length - 1].focus();
+  };
+  el.querySelectorAll(".layer").forEach((tr, k) => {
+    const l = c.layers[k];
+    tr.querySelector("select").onchange = e => { l.mat = e.target.value; updateCol(i); save(); };
+    tr.querySelector("input").oninput = e => {
+      const v = parseFloat(String(e.target.value).replace(",", "."));
+      if (v > 0) { l.cm = v; updateCol(i); save(); }
+    };
+    tr.querySelector("button").onclick = () => { c.layers.splice(k, 1); renderCol(i); renderCompare(); save(); };
+  });
+  updateCol(i);
+}
+
+function updateCol(i) {
+  const c = cols[i], el = document.getElementById("col" + i);
+  el.querySelectorAll(".layer").forEach((tr, k) => {
+    const l = c.layers[k];
+    tr.querySelector(".r").textContent = fmt((l.cm / 100) / MATERIALS[l.mat].lambda, 3);
+  });
+  const res = calcU(c.layers);
+  el.querySelector(".rsum").textContent = res ? "Σ R = " + fmt(res.rTotal, 3) : "";
+  el.querySelector(".uval").textContent = res ? fmt(res.u, 2) + " W/(m²K)" : "–";
+  el.querySelector(".ubadge").innerHTML = res
+    ? `<span class="badge ${res.u <= U_MAX ? "ok" : "bad"}">${res.u <= U_MAX ? "erfüllt" : "nicht erfüllt"}</span>` : "";
+  const total = c.layers.reduce((s, l) => s + l.cm, 0);
+  el.querySelector(".wall").innerHTML = c.layers.map(l => {
     const m = MATERIALS[l.mat];
     const [r, g, b] = [1, 3, 5].map(k => parseInt(m.color.slice(k, k + 2), 16));
     const light = (0.299 * r + 0.587 * g + 0.114 * b) > 160;
     const txt = light ? "color:#22201c;text-shadow:none" : "";
-    return `<div style="flex:${l.cm};background:${m.color}" title="${m.name}, ${fmt(l.cm, 1)} cm">${l.cm >= 6 ? `<span style="${txt}">${fmt(l.cm, 0)} cm</span>` : ""}</div>`;
+    return `<div style="flex:${l.cm};background:${m.color}" title="${m.name}, ${fmt(l.cm, 1)} cm">${l.cm >= 8 ? `<span style="${txt}">${fmt(l.cm, 0)} cm</span>` : ""}</div>`;
   }).join("");
-  document.getElementById("wallThickness").textContent = total ? `Gesamtdicke ${fmt(total, 1)} cm` : "";
+  el.querySelector(".thick").textContent = total ? `${fmt(total, 1)} cm` : "";
+  renderCompare();
 }
 
-function loadPreset(name) {
-  layers = PRESETS[name].map(([mat, cm]) => ({ mat, cm }));
-  renderLayers();
+function renderCompare() {
+  compare.innerHTML = cols.map((c, i) => {
+    const res = calcU(c.layers);
+    const cls = res ? (res.u <= U_MAX ? "ok" : "bad") : "";
+    return `<button type="button" class="${cls}" data-i="${i}" aria-label="Zu Wand ${LETTERS[i]}">
+      <span class="letter">${LETTERS[i]}</span><b>${res ? fmt(res.u, 2) : "–"}</b><small></small></button>`;
+  }).join("");
+  compare.querySelectorAll("button").forEach(b => {
+    b.querySelector("small").textContent = cols[b.dataset.i].name;
+    b.onclick = () => focusCol(+b.dataset.i);
+  });
 }
-document.querySelectorAll("[data-preset]").forEach(b => b.onclick = () => loadPreset(b.dataset.preset));
-document.getElementById("addLayer").onclick = () => { layers.push({ mat: "mineralwolle", cm: 10 }); renderLayers(); };
-loadPreset("bestand");
+
+function focusCol(i) {
+  const el = document.getElementById("col" + i);
+  sheet.scrollTo({ left: el.offsetLeft - sheet.offsetLeft, behavior: "smooth" });
+  el.classList.add("flash");
+  setTimeout(() => el.classList.remove("flash"), 1600);
+}
 
 /* ============================================================
-   Zweite Perspektive: fehlbare KI
+   Notizen
+   ============================================================ */
+function bindNote(ta) {
+  ta.value = notes[ta.dataset.note] || "";
+  ta.oninput = () => { notes[ta.dataset.note] = ta.value; save(); };
+}
+bindNote(document.getElementById("noteMain"));
+
+function notesAsText() {
+  const parts = [];
+  if ((notes.main || "").trim()) parts.push("Meine Erkenntnisse:\n" + notes.main.trim());
+  AI_CLAIMS.forEach((c, i) => {
+    const t = (notes["ki" + (i + 1)] || "").trim();
+    if (t) parts.push(`Probe zu KI-Vorschlag ${i + 1}:\n` + t);
+  });
+  parts.push("Meine Wände:\n" + cols.map((c, i) => {
+    const r = calcU(c.layers);
+    return `${LETTERS[i]} · ${c.name}: ${r ? fmt(r.u, 2) + " W/(m²K)" : "leer"}`;
+  }).join("\n"));
+  return parts.join("\n\n");
+}
+
+function renderMyNotes() {
+  const box = document.getElementById("myNotes");
+  const hasNotes = (notes.main || "").trim() || AI_CLAIMS.some((_, i) => (notes["ki" + (i + 1)] || "").trim());
+  box.textContent = hasNotes ? notesAsText()
+    : "Du hast noch nichts notiert. Geh zurück zum Arbeitsblatt und halte fest, was du herausgefunden hast. Gerade die eigenen Fehler sind es wert, aufgeschrieben zu werden.";
+}
+
+document.getElementById("copyNotes").onclick = () => {
+  const msg = document.getElementById("copyMsg"), text = notesAsText();
+  const done = t => { msg.textContent = t; setTimeout(() => msg.textContent = "", 2500); };
+  try {
+    navigator.clipboard.writeText(text).then(() => done("Kopiert."), () => done("Kopieren nicht möglich. Bitte im Notizfeld markieren."));
+  } catch (e) { done("Kopieren nicht möglich. Bitte im Notizfeld markieren."); }
+};
+
+/* ============================================================
+   Zweite Perspektive: fehlbare KI, geprüft durch Einsetzen
    Die Aussagen sind bewusst gemischt: richtig, falsch, "kommt drauf an".
    ============================================================ */
 const AI_CLAIMS = [
   {
     text: "Statt zu dämmen, könntest du die Ziegelwand auch auf 36,5 cm verstärken. Dann erreicht sie den Wert von 0,24 ohne Dämmung.",
     answer: "falsch",
-    explain: "36,5 cm Vollziegel ergeben R = 0,365 / 0,68 ≈ 0,54. Mit Putz und Übergangswiderständen kommt die Wand auf etwa U = 1,34 W/(m²K), also mehr als fünfmal zu hoch. Massives Mauerwerk dämmt schlecht. Dicke allein reicht nicht."
+    probe: { name: "Probe KI 1: Vollziegel 36,5 cm", layers: [["kalkgipsputz",1.5],["vollziegel",36.5],["kalkzementputz",2]] },
+    explain: "Eingesetzt ergibt die Wand etwa U = 1,34 W/(m²K), also mehr als fünfmal so viel wie erlaubt. Massives Mauerwerk dämmt schlecht. Dicke allein reicht nicht."
   },
   {
-    text: "Für eine Außenwand rechnest du innen mit 0,13 und außen mit 0,04 m²K/W Übergangswiderstand, zusammen also 0,17.",
+    text: "Wenn du statt 14 cm EPS lieber 16 cm Mineralwolle (035) nimmst, kommst du auf etwa 0,20 W/(m²K).",
     answer: "stimmt",
-    explain: "Richtig. Das sind die Werte für horizontalen Wärmestrom nach DIN EN ISO 6946."
+    probe: { name: "Probe KI 2: 16 cm Mineralwolle", layers: [["kalkgipsputz",1.5],["vollziegel",24],["mineralwolle",16],["kalkzementputz",1]] },
+    explain: "Richtig. Eingesetzt ergibt die Wand U ≈ 0,195, gerundet 0,20 W/(m²K). Zwei Zentimeter mehr Dämmung bringen von 0,22 auf 0,20. Das ist eine Verbesserung, aber eine kleine."
   },
   {
     text: "Den Putz kannst du in der Rechnung weglassen. Er ändert am U-Wert praktisch nichts.",
     answer: "kommt drauf an",
-    explain: "Zahlenmäßig hat die KI fast recht: In der sanierten Wand verändert der Putz den U-Wert nur in der dritten Nachkommastelle. Für einen Nachweis gehört aber jede Schicht in die Rechnung. Und bei einer ungedämmten Wand ist sein Anteil deutlich größer. Die Aussage ist also eine Faustregel, kein Rechenweg."
+    probe: { name: "Probe KI 3: Bestand ohne Putz", layers: [["vollziegel",24]] },
+    explain: "Eingesetzt: Ohne Putz steigt der U-Wert des Bestands von 1,77 auf 1,91 W/(m²K). Das ist ein deutlicher Unterschied. Probiere dasselbe mit der sanierten Wand B: Dort ändert sich erst die dritte Nachkommastelle. Die Aussage ist also eine Faustregel für gedämmte Wände, kein Rechenweg. In einen Nachweis gehört jede Schicht."
   }
 ];
 
 const aiArea = document.getElementById("aiArea");
-document.getElementById("aiOn").onchange = e => {
-  aiArea.hidden = !e.target.checked;
-  document.getElementById("aiSkip").hidden = e.target.checked;
-  if (e.target.checked && !aiArea.childElementCount) renderAI();
+const aiOn = document.getElementById("aiOn");
+aiOn.onchange = () => {
+  aiArea.hidden = !aiOn.checked;
+  document.getElementById("aiSkip").hidden = aiOn.checked;
+  if (aiOn.checked && !aiArea.childElementCount) renderAI();
 };
 
 function renderAI() {
@@ -415,18 +613,36 @@ function renderAI() {
     card.innerHTML = `
       <div class="who">KI · Vorschlag ${i + 1}</div>
       <p style="margin:6px 0 0">${c.text}</p>
+      <div class="probe-row"><strong>Probe durch Einsetzen:</strong>
+        <button type="button" data-col="2">in Spalte C</button>
+        <button type="button" data-col="3">in Spalte D</button>
+      </div>
+      <label>Was habe ich eingesetzt, was kam heraus, wo lag der Fehler?
+        <textarea data-note="ki${i + 1}" rows="3"></textarea></label>
+      <div class="hint">Erst einsetzen, dann urteilen.</div>
       <div class="choices" role="group" aria-label="Deine Einschätzung zu Vorschlag ${i + 1}">
-        ${["stimmt", "falsch", "kommt drauf an"].map(o => `<button type="button" data-o="${o}">${o}</button>`).join("")}
+        ${["stimmt", "falsch", "kommt drauf an"].map(o => `<button type="button" data-o="${o}" disabled>${o}</button>`).join("")}
       </div>
       <div class="feedback" hidden></div>`;
-    card.querySelectorAll("button").forEach(b => b.onclick = () => {
-      card.querySelectorAll("button").forEach(x => x.classList.remove("picked"));
+    bindNote(card.querySelector("textarea"));
+    const hint = card.querySelector(".hint");
+    card.querySelectorAll(".probe-row button").forEach(b => b.onclick = () => {
+      const k = +b.dataset.col;
+      cols[k] = makeCol(c.probe.name, c.probe.layers);
+      renderCol(k); renderCompare(); save();
+      focusCol(k);
+      document.getElementById("compare").scrollIntoView({ behavior: "smooth", block: "start" });
+      card.querySelectorAll(".choices button").forEach(x => x.disabled = false);
+      hint.textContent = `Eingesetzt in Spalte ${LETTERS[k]}. Vergleiche mit A und B, notiere, was du siehst, und urteile dann.`;
+    });
+    card.querySelectorAll(".choices button").forEach(b => b.onclick = () => {
+      card.querySelectorAll(".choices button").forEach(x => x.classList.remove("picked"));
       b.classList.add("picked");
       const fb = card.querySelector(".feedback");
       const right = b.dataset.o === c.answer;
       fb.hidden = false;
       fb.className = "feedback " + (right ? "ok" : "bad");
-      fb.innerHTML = `<strong>${right ? "Gut geprüft." : "Schau noch einmal hin."}</strong> ${c.explain}`;
+      fb.innerHTML = `<strong>${right ? "Gut geprüft." : "Schau noch einmal auf deine Probe."}</strong> ${c.explain}`;
       SCORM.set(`cmi.interactions.${i}.id`, `ki_${i + 1}`);
       SCORM.set(`cmi.interactions.${i}.result`, right ? "correct" : "wrong");
     });
@@ -464,7 +680,6 @@ const QUIZ = [
   }
 ];
 const PASS = 75;
-let quizDone = false;
 
 const form = document.getElementById("quiz");
 form.innerHTML = QUIZ.map((item, i) => `
@@ -495,7 +710,7 @@ document.getElementById("checkQuiz").onclick = () => {
   const passed = score >= PASS;
   out.innerHTML = `<div class="result"><div><div class="small">Ergebnis</div><div class="big">${score} %</div></div>
     <span class="badge ${passed ? "ok" : "bad"}">${passed ? "bestanden" : "noch nicht bestanden"}</span></div>
-    ${passed ? "" : "<p>Lies die Erklärungen bei den roten Fragen und versuche es noch einmal.</p>"}`;
+    ${passed ? "" : "<p>Lies die Erklärungen bei den roten Fragen, rechne auf dem Arbeitsblatt nach und versuche es noch einmal.</p>"}`;
   SCORM.reportScore(score, PASS);
   quizDone = passed;
   document.getElementById("next").disabled = !passed;
@@ -504,15 +719,39 @@ document.getElementById("checkQuiz").onclick = () => {
     : "Hinweis: Die Einheit läuft gerade ohne Lernplattform. Das Ergebnis wird nicht gespeichert.";
 };
 
+/* ============================================================
+   Neu beginnen (zweimal tippen, ohne Browser-Dialog)
+   ============================================================ */
+const restart = document.getElementById("restart");
+let armed = null;
+restart.onclick = () => {
+  if (!armed) {
+    restart.classList.add("armed");
+    restart.textContent = "Wirklich? Alles zurücksetzen";
+    armed = setTimeout(() => { armed = null; restart.classList.remove("armed"); restart.textContent = "↺ Neu beginnen"; }, 4000);
+    return;
+  }
+  clearTimeout(armed); armed = null;
+  restart.classList.remove("armed"); restart.textContent = "↺ Neu beginnen";
+  cols = defaultCols(); notes = {};
+  document.getElementById("noteMain").value = "";
+  aiOn.checked = false; aiArea.innerHTML = ""; aiArea.hidden = true;
+  document.getElementById("aiSkip").hidden = false;
+  form.reset();
+  form.querySelectorAll("fieldset").forEach(f => f.classList.remove("correct", "wrong"));
+  document.getElementById("quizResult").innerHTML = "";
+  quizDone = false;
+  buildSheet(); save(); show(0);
+};
+
+buildSheet();
 show(0);
 </script>
 <script>
 /* Nur auf der Werkstatt-Website: Rückweg und Figur. In einer Lernplattform bleibt beides weg. */
 if (location.hostname === "barbara-magdalena-mayer.github.io") {
   const home = "https://barbara-magdalena-mayer.github.io/";
-  const back = document.createElement("p");
-  back.innerHTML = `<a href="${home}">← Zurück zur Werkstatt</a>`;
-  document.querySelector("footer").prepend(back);
+  document.getElementById("homeLink").hidden = false;
   const st = document.createElement("style");
   st.textContent = ".bmm-figur{position:absolute;top:10px;right:12px;z-index:30;display:block;line-height:0}.bmm-figur img{height:96px;width:auto;filter:drop-shadow(0 5px 8px #0004);transition:transform .2s}.bmm-figur:hover img,.bmm-figur:focus-visible img{transform:translateY(-3px)}@media(max-width:640px){.bmm-figur{position:static;display:flex;justify-content:flex-end;padding:12px 16px 20px}.bmm-figur img{height:72px}}@media print{.bmm-figur{display:none}}";
   document.head.appendChild(st);

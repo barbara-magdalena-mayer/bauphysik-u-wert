@@ -2,14 +2,13 @@
 
 So entstehen Einheiten in dieser Werkstatt. Der Standard sorgt dafür, dass jede Einheit gleich aufgebaut, technisch austauschbar und überprüfbar ist.
 
-## 1 · Didaktischer Aufbau (sechs Schritte)
+## 1 · Didaktischer Aufbau (fünf Schritte)
 
 | Schritt | Funktion | Pflicht |
 |---|---|---|
 | Auftrag | Ein konkreter Fall aus der Praxis, eine offene Frage | ja |
 | Wissen | Nur das, was zur Lösung nötig ist; Formeln mit Beispiel | ja |
-| Werkstatt | Interaktives Werkzeug: ausprobieren, nicht nur lesen | ja |
-| Zweite Perspektive | Zuschaltbare, fehlbare KI; Aussagen prüfen | optional, nicht bewertet |
+| Arbeitsblatt | Mehrere Varianten nebeneinander (z. B. vier Spalten), Vergleichsleiste, Feld „Meine Erkenntnisse“; zuschaltbare, fehlbare KI auf demselben Blatt | ja (KI optional, nicht bewertet) |
 | Test | 4–6 Fragen, jede mit Erklärung | ja |
 | Abschluss | Rückkehr zum Auftrag, Fragen zum Weiterdenken | ja |
 
@@ -18,7 +17,9 @@ So entstehen Einheiten in dieser Werkstatt. Der Standard sorgt dafür, dass jede
 ## 2 · Die fehlbare KI
 
 - Drei Aussagen pro Einheit: **eine richtig, eine falsch, eine „kommt drauf an“**
-- Jede Aussage muss mit dem Werkzeug aus Schritt 3 überprüfbar sein
+- Jede Aussage wird durch **Probe durch Einsetzen** geprüft: Ein Knopf setzt ihre Werte in eine freie Spalte des Arbeitsblatts. Die Methode heißt überall genau so.
+- Urteilen erst nach der Probe (Knöpfe vorher gesperrt)
+- Zu jeder Probe ein Notizfeld: „Was habe ich eingesetzt, was kam heraus, wo lag der Fehler?“
 - Die falsche Aussage greift einen typischen Denkfehler auf (z. B. „dicker = besser“)
 - Die Rückmeldung erklärt den Weg, nicht nur das Ergebnis
 
@@ -26,6 +27,7 @@ So entstehen Einheiten in dieser Werkstatt. Der Standard sorgt dafür, dass jede
 
 - Eine HTML-Datei, kein Framework, keine externen Bibliotheken
 - `scorm.js` unverändert übernehmen; die Einheit ruft nur `SCORM.reportScore(score, passMark)` auf
+- Oben immer „↺ Neu beginnen“ (ohne Browser-Dialog, zweimal tippen); auf der Website zusätzlich „← Werkstatt“
 - Läuft ohne LMS (Standalone-Modus) und mit LMS, auch wenn `scorm.js` fehlt (Ersatzobjekt am Anfang des Skripts)
 - Farben über CSS-Variablen, heller und dunkler Modus
 - Mobil zuerst: muss auf 360 px Breite bedienbar sein

@@ -12,7 +12,7 @@ Eine interaktive Lerneinheit zum Wärmeschutz. Lernende sanieren eine Altbauwand
 |---|---|
 | **Thema** | Wärmedurchlasswiderstand, U-Wert mehrschichtiger Bauteile, Sanierungsnachweis |
 | **Zielgruppe** | Ausbildung Bau und Ausbau, Weiterbildung Energieberatung, Technikerschule |
-| **Dauer** | ca. 20 Minuten |
+| **Dauer** | ca. 25 Minuten |
 | **Format** | HTML/JavaScript, ohne Abhängigkeiten, läuft auf dem Handy |
 | **Standard** | SCORM 1.2: importierbar in Moodle, ILIAS, SAP SuccessFactors Learning u. a. |
 | **Bewertung** | Abschlusstest, Bestehensgrenze 75 %, Rückmeldung an das LMS |
@@ -21,11 +21,12 @@ Eine interaktive Lerneinheit zum Wärmeschutz. Lernende sanieren eine Altbauwand
 ## Aufbau
 
 1. **Auftrag**: ein realer Fall (Einfamilienhaus 1958, 24 cm Vollziegel)
-2. **Wissen**: R = d/λ, Übergangswiderstände, U-Wert
-3. **Werkstatt**: Wand Schicht für Schicht bauen, U-Wert live berechnen, Wandschnitt sehen
-4. **Zweite Perspektive**: KI dazuschalten. Ihre Aussagen sind gemischt: richtig, falsch, „kommt drauf an“. Die Lernenden prüfen sie mit ihrer eigenen Rechnung.
-5. **Abschlusstest**: vier Fragen mit Erklärungen
-6. **Abschluss**: Antwort an die Eigentümerin, Fragen zum Weiterdenken
+2. **Wissen**: R = d/λ, Übergangswiderstände, U-Wert und die Methode **Probe durch Einsetzen**
+3. **Arbeitsblatt**: vier Wände A–D nebeneinander (Bestand, Sanierung, zwei freie Spalten), eine Vergleichsleiste mit allen U-Werten, das Feld „Meine Erkenntnisse“. Dazu optional die KI: Ihre Aussagen sind gemischt (richtig, falsch, „kommt drauf an“). Jede Aussage wird erst durch Einsetzen in Spalte C oder D geprüft, dann beurteilt. Zu jeder Probe notieren die Lernenden: Was habe ich eingesetzt, was kam heraus, wo lag der Fehler?
+4. **Abschlusstest**: vier Fragen mit Erklärungen
+5. **Abschluss**: Antwort an die Eigentümerin, der eigene Erkenntnisweg (die Notizen), Fragen zum Weiterdenken
+
+Oben gibt es immer „↺ Neu beginnen“ (zweimal tippen) und auf der Website „← Werkstatt“. Spalten und Notizen bleiben auf dem eigenen Gerät gespeichert, in einer Lernplattform zusätzlich in `cmi.suspend_data`.
 
 ## Didaktische Idee
 
