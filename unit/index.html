@@ -1,0 +1,508 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>U-Wert einer Außenwand</title>
+<meta name="description" content="Interaktive Lerneinheit Bauphysik: U-Wert einer Außenwand berechnen und eine Sanierung beurteilen.">
+<style>
+  :root {
+    --bg: #f6f3ee;
+    --paper: #ffffff;
+    --ink: #22201c;
+    --muted: #6b655c;
+    --line: #ddd6ca;
+    --accent: #b5532a;      /* Ziegelrot */
+    --accent-soft: #f3e2d8;
+    --ok: #2f7a4b;
+    --ok-soft: #dcefe2;
+    --bad: #a83232;
+    --bad-soft: #f5dddd;
+    --ai: #4a5aa8;
+    --ai-soft: #e3e6f5;
+    --radius: 10px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1b1a18; --paper: #262421; --ink: #efe9df; --muted: #a59d90; --line: #3d3934;
+      --accent: #e0835a; --accent-soft: #3e2a20; --ok: #6cc08d; --ok-soft: #1f3528;
+      --bad: #e07a7a; --bad-soft: #3d2222; --ai: #9aa8ec; --ai-soft: #252a42;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font: 16px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  header {
+    padding: 20px 16px 12px; max-width: 760px; margin: 0 auto;
+  }
+  .kicker { font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); font-weight: 600; }
+  h1 { font-size: 26px; line-height: 1.2; margin: 4px 0 10px; }
+  h2 { font-size: 20px; margin: 0 0 12px; }
+  h3 { font-size: 16px; margin: 18px 0 8px; }
+  .progress { display: flex; gap: 6px; margin-top: 8px; }
+  .progress span { flex: 1; height: 5px; border-radius: 3px; background: var(--line); }
+  .progress span.done { background: var(--accent); }
+  main { max-width: 760px; margin: 0 auto; padding: 0 16px 40px; }
+  section.step { display: none; background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; }
+  section.step.active { display: block; }
+  .nav { display: flex; justify-content: space-between; gap: 12px; margin-top: 20px; }
+  button {
+    font: inherit; border-radius: 8px; padding: 10px 16px; cursor: pointer;
+    border: 1px solid var(--line); background: var(--paper); color: var(--ink);
+  }
+  button.primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+  button:disabled { opacity: .45; cursor: not-allowed; }
+  button:focus-visible, select:focus-visible, input:focus-visible { outline: 3px solid var(--ai); outline-offset: 2px; }
+  .case {
+    border-left: 4px solid var(--accent); background: var(--accent-soft);
+    padding: 12px 14px; border-radius: 0 8px 8px 0; margin: 12px 0;
+  }
+  .formula {
+    font-family: "Cambria Math", Georgia, serif; font-size: 19px; text-align: center;
+    padding: 12px; background: var(--bg); border-radius: 8px; margin: 10px 0;
+  }
+  table { width: 100%; border-collapse: collapse; font-size: 15px; }
+  th, td { text-align: left; padding: 7px 6px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+  th { color: var(--muted); font-weight: 600; font-size: 13px; }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  select, input[type=number] {
+    font: inherit; padding: 6px 8px; border: 1px solid var(--line); border-radius: 6px;
+    background: var(--paper); color: var(--ink); width: 100%;
+  }
+  input[type=number] { width: 64px; padding: 6px 4px; text-align: right; }
+  .small { font-size: 13px; color: var(--muted); }
+  .row-btn { padding: 4px 9px; }
+  .toolbar { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0 14px; }
+  /* Wandschnitt */
+  .wall { display: flex; height: 120px; border-radius: 6px; overflow: hidden; border: 1px solid var(--line); margin: 14px 0 4px; }
+  .wall div { position: relative; min-width: 3px; }
+  .wall div span {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    white-space: nowrap; font-size: 12px; font-weight: 600; color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,.7);
+  }
+  .wall-labels { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); }
+  .result {
+    display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 4px 12px;
+    margin-top: 16px; padding: 14px; border-radius: 8px; background: var(--bg);
+  }
+  .result .big { font-size: 28px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .badge { padding: 4px 10px; border-radius: 99px; font-size: 14px; font-weight: 600; }
+  .badge.ok { background: var(--ok-soft); color: var(--ok); }
+  .badge.bad { background: var(--bad-soft); color: var(--bad); }
+  /* KI */
+  .ai-toggle { display: flex; align-items: center; gap: 10px; padding: 12px; border: 1px dashed var(--ai); border-radius: 8px; }
+  .ai-card { border: 1px solid var(--ai); background: var(--ai-soft); border-radius: 8px; padding: 12px 14px; margin: 12px 0; }
+  .ai-card .who { font-size: 12px; font-weight: 700; color: var(--ai); letter-spacing: .05em; text-transform: uppercase; }
+  .choices { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+  .choices button.picked { border-color: var(--ai); outline: 2px solid var(--ai); }
+  .feedback { margin-top: 10px; padding: 10px 12px; border-radius: 6px; font-size: 15px; }
+  .feedback.ok { background: var(--ok-soft); }
+  .feedback.bad { background: var(--bad-soft); }
+  /* Quiz */
+  fieldset { border: 1px solid var(--line); border-radius: 8px; margin: 0 0 14px; padding: 12px 14px; }
+  legend { font-weight: 600; padding: 0 6px; }
+  label.opt { display: flex; gap: 8px; align-items: flex-start; padding: 5px 0; cursor: pointer; }
+  fieldset.correct { border-color: var(--ok); background: var(--ok-soft); }
+  fieldset.wrong { border-color: var(--bad); background: var(--bad-soft); }
+  .explain { font-size: 14px; margin-top: 6px; display: none; }
+  fieldset.correct .explain, fieldset.wrong .explain { display: block; }
+  footer { max-width: 760px; margin: 0 auto; padding: 0 16px 30px; }
+  @media (max-width: 520px) {
+    section.step { padding: 16px; }
+    #layers td:nth-child(3), thead th:nth-child(3), tfoot td:nth-child(2) { display: none; } /* λ-Spalte auf dem Handy ausblenden */
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="kicker">Bauphysik · Wärmeschutz</div>
+  <h1>Der U-Wert einer Außenwand</h1>
+  <div class="progress" aria-hidden="true" id="progress"></div>
+</header>
+
+<main>
+
+  <!-- 1 · Auftrag -->
+  <section class="step" data-title="Auftrag">
+    <h2>Dein Auftrag</h2>
+    <div class="case">
+      Ein Einfamilienhaus von 1958 soll energetisch saniert werden. Die Außenwand besteht aus
+      <strong>24 cm Vollziegel</strong>, innen und außen verputzt. Die Eigentümerin fragt dich:
+      <em>„Reicht eine Außendämmung von 14 cm, damit die Wand die Anforderungen erfüllt?“</em>
+    </div>
+    <p>Nach dieser Einheit kannst du</p>
+    <ul>
+      <li>den Wärmedurchlasswiderstand einer Schicht berechnen,</li>
+      <li>den U-Wert einer mehrschichtigen Wand bestimmen,</li>
+      <li>eine Sanierungsvariante mit einem Anforderungswert vergleichen,</li>
+      <li>Aussagen einer KI fachlich prüfen, statt sie zu übernehmen.</li>
+    </ul>
+    <p class="small">Dauer: ca. 20 Minuten. Bestehensgrenze im Abschlusstest: 75 %.</p>
+  </section>
+
+  <!-- 2 · Wissen -->
+  <section class="step" data-title="Wissen">
+    <h2>Was du brauchst</h2>
+    <p>Der <strong>U-Wert</strong> (Wärmedurchgangskoeffizient) gibt an, wie viel Wärme pro Sekunde durch 1 m² Bauteil
+      fließt, wenn innen und außen 1 Kelvin Temperaturunterschied herrscht. Einheit: W/(m²K).
+      <strong>Je kleiner der U-Wert, desto besser dämmt das Bauteil.</strong></p>
+
+    <h3>1 · Jede Schicht bremst die Wärme</h3>
+    <p>Wie stark, hängt von ihrer Dicke <em>d</em> (in m) und der Wärmeleitfähigkeit <em>λ</em> (Lambda, in W/(mK)) ab:</p>
+    <div class="formula">R = d / λ</div>
+    <p class="small">Beispiel: 14 cm Dämmung mit λ = 0,035 → R = 0,14 / 0,035 = 4,00 m²K/W</p>
+
+    <h3>2 · Dazu kommen die Oberflächen</h3>
+    <p>An der Innen- und Außenoberfläche geht Wärme von der Luft ins Bauteil über und umgekehrt. Bei einer
+      Außenwand (Wärmestrom horizontal) rechnet man mit:</p>
+    <table>
+      <tr><td>R<sub>si</sub> innen</td><td class="num">0,13 m²K/W</td></tr>
+      <tr><td>R<sub>se</sub> außen</td><td class="num">0,04 m²K/W</td></tr>
+    </table>
+
+    <h3>3 · Alles zusammen</h3>
+    <div class="formula">U = 1 / (R<sub>si</sub> + R<sub>1</sub> + R<sub>2</sub> + … + R<sub>se</sub>)</div>
+    <p>Die Widerstände werden <strong>addiert</strong>, erst das Ergebnis wird in den U-Wert umgerechnet.</p>
+  </section>
+
+  <!-- 3 · Werkstatt -->
+  <section class="step" data-title="Werkstatt">
+    <h2>Wand bauen und rechnen</h2>
+    <p>Baue die Wand von innen nach außen auf. Starte mit dem Bestand, dann prüfe die Sanierung.</p>
+    <div class="toolbar">
+      <button type="button" data-preset="bestand">Bestand 1958</button>
+      <button type="button" data-preset="saniert">Bestand + 14 cm EPS</button>
+      <button type="button" id="addLayer">+ Schicht</button>
+    </div>
+
+    <table aria-describedby="uResult">
+      <thead>
+        <tr><th>Schicht (innen → außen)</th><th class="num">d [cm]</th><th class="num">λ</th><th class="num">R</th><th></th></tr>
+      </thead>
+      <tbody id="layers"></tbody>
+      <tfoot>
+        <tr><td colspan="2" class="small">+ R<sub>si</sub> 0,13 + R<sub>se</sub> 0,04</td><td></td><td class="num" id="rTotal" style="white-space:nowrap"></td><td></td></tr>
+      </tfoot>
+    </table>
+
+    <div class="wall" id="wall" role="img" aria-label="Schnitt durch die Wand"></div>
+    <div class="wall-labels"><span>innen</span><span id="wallThickness"></span><span>außen</span></div>
+
+    <div class="result" id="uResult" aria-live="polite">
+      <div>
+        <div class="small">U-Wert der Wand</div>
+        <div class="big" id="uValue">–</div>
+      </div>
+      <div id="uBadge"></div>
+      <div class="small" style="grid-column: 1 / -1">
+        Vergleichswert: U ≤ 0,24 W/(m²K) – Höchstwert für Außenwände bei Sanierung nach GEG, Anlage 7.
+      </div>
+    </div>
+    <p class="small">λ-Werte sind typische Bemessungswerte nach DIN 4108-4. In der Praxis gelten die Angaben des Herstellers.</p>
+  </section>
+
+  <!-- 4 · Zweite Perspektive -->
+  <section class="step" data-title="KI-Perspektive">
+    <h2>Eine zweite Perspektive</h2>
+    <p>Du kannst eine KI dazuschalten. Sie bringt Ideen ein, die du vielleicht nicht hattest,
+      <strong>aber sie kann auch falsch liegen.</strong> Deine Aufgabe: Prüfe jede Aussage mit dem, was du gerade gerechnet hast.</p>
+    <div class="ai-toggle">
+      <input type="checkbox" id="aiOn">
+      <label for="aiOn"><strong>KI dazuschalten</strong></label>
+    </div>
+    <div id="aiArea" hidden></div>
+    <p class="small" id="aiSkip">Du kannst diesen Schritt auch überspringen. Er zählt nicht zur Bewertung.</p>
+  </section>
+
+  <!-- 5 · Test -->
+  <section class="step" data-title="Test">
+    <h2>Abschlusstest</h2>
+    <form id="quiz"></form>
+    <button type="button" class="primary" id="checkQuiz">Auswerten</button>
+    <div id="quizResult" aria-live="polite" style="margin-top:14px"></div>
+  </section>
+
+  <!-- 6 · Abschluss -->
+  <section class="step" data-title="Abschluss">
+    <h2>Zurück zur Eigentümerin</h2>
+    <div class="case" id="finalAnswer">
+      Mit 14 cm EPS (λ = 0,035) sinkt der U-Wert der Wand von rund 1,77 auf rund 0,22 W/(m²K).
+      Der Höchstwert von 0,24 wird eingehalten, die Antwort lautet also <strong>ja</strong>, und zwar mit wenig Reserve.
+      Mit einem Dämmstoff der Gruppe 040 (λ = 0,040) wären bei gleicher Dicke etwa 0,25 W/(m²K) erreicht. Das wäre zu wenig.
+    </div>
+    <h3>Zum Weiterdenken</h3>
+    <ul>
+      <li>Warum lohnt sich der erste Zentimeter Dämmung mehr als der zwanzigste?</li>
+      <li>Was passiert an Fensterlaibungen und Deckenauflagern? (Stichwort: Wärmebrücken)</li>
+      <li>Welche Rolle spielt die Lage der Dämmung (innen oder außen) für Tauwasser in der Wand?</li>
+    </ul>
+    <p id="lmsNote" class="small"></p>
+  </section>
+
+  <div class="nav">
+    <button type="button" id="prev">← Zurück</button>
+    <button type="button" class="primary" id="next">Weiter →</button>
+  </div>
+</main>
+
+<footer class="small">
+  Lerneinheit von Barbara Magdalena Mayer · Werkstatt für digitale Lernorte
+</footer>
+
+<script src="scorm.js"></script>
+<script>
+/* Ersatz, falls scorm.js fehlt (z. B. GitHub Pages, lokale Vorschau) */
+window.SCORM = window.SCORM || { isLMS: false, set() {}, reportScore() {} };
+
+/* ============================================================
+   Daten
+   ============================================================ */
+const MATERIALS = {
+  "kalkgipsputz":  { name: "Kalkgipsputz (innen)",   lambda: 0.70,  color: "#d9d2c3" },
+  "kalkzementputz":{ name: "Kalkzementputz (außen)", lambda: 1.00,  color: "#b9b2a4" },
+  "vollziegel":    { name: "Vollziegel",             lambda: 0.68,  color: "#b5532a" },
+  "hlz":           { name: "Hochlochziegel (alt)",   lambda: 0.40,  color: "#c9764d" },
+  "kalksandstein": { name: "Kalksandstein",          lambda: 0.99,  color: "#cfcac0" },
+  "porenbeton":    { name: "Porenbeton",             lambda: 0.14,  color: "#e8e4dc" },
+  "stahlbeton":    { name: "Stahlbeton",             lambda: 2.30,  color: "#8a8a86" },
+  "eps":           { name: "EPS-Dämmung (035)",      lambda: 0.035, color: "#f2efe4" },
+  "mineralwolle":  { name: "Mineralwolle (035)",     lambda: 0.035, color: "#e9cf6a" },
+  "holzfaser":     { name: "Holzfaserdämmung (040)", lambda: 0.040, color: "#a07a4f" },
+  "eps040":        { name: "EPS-Dämmung (040)",      lambda: 0.040, color: "#ece6d2" }
+};
+const RSI = 0.13, RSE = 0.04, U_MAX = 0.24;
+
+const PRESETS = {
+  bestand: [["kalkgipsputz",1.5],["vollziegel",24],["kalkzementputz",2]],
+  saniert: [["kalkgipsputz",1.5],["vollziegel",24],["eps",14],["kalkzementputz",1]]
+};
+
+const fmt = (n, d = 2) => n.toLocaleString("de-DE", { minimumFractionDigits: d, maximumFractionDigits: d });
+
+/* ============================================================
+   Schritt-Navigation
+   ============================================================ */
+const steps = [...document.querySelectorAll("section.step")];
+let current = 0;
+const progress = document.getElementById("progress");
+steps.forEach(() => progress.appendChild(document.createElement("span")));
+
+function show(i) {
+  current = Math.max(0, Math.min(steps.length - 1, i));
+  steps.forEach((s, k) => s.classList.toggle("active", k === current));
+  [...progress.children].forEach((p, k) => p.classList.toggle("done", k <= current));
+  document.getElementById("prev").disabled = current === 0;
+  const next = document.getElementById("next");
+  next.hidden = current === steps.length - 1;
+  next.disabled = current === 4 && !quizDone;   // Test muss ausgewertet sein
+  SCORM.set("cmi.core.lesson_location", current);
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+document.getElementById("prev").onclick = () => show(current - 1);
+document.getElementById("next").onclick = () => show(current + 1);
+
+/* ============================================================
+   Werkstatt: Wandrechner
+   ============================================================ */
+let layers = [];
+const tbody = document.getElementById("layers");
+
+function materialOptions(selected) {
+  return Object.entries(MATERIALS)
+    .map(([k, m]) => `<option value="${k}" ${k === selected ? "selected" : ""}>${m.name}</option>`).join("");
+}
+
+function renderLayers() {
+  tbody.innerHTML = "";
+  layers.forEach((l, i) => {
+    const m = MATERIALS[l.mat];
+    const r = (l.cm / 100) / m.lambda;
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td><select aria-label="Material Schicht ${i + 1}">${materialOptions(l.mat)}</select></td>
+      <td class="num"><input type="number" min="0.5" max="60" step="0.5" value="${l.cm}" aria-label="Dicke Schicht ${i + 1} in cm"></td>
+      <td class="num">${fmt(m.lambda, 3)}</td>
+      <td class="num">${fmt(r, 3)}</td>
+      <td><button type="button" class="row-btn" aria-label="Schicht ${i + 1} entfernen">✕</button></td>`;
+    tr.querySelector("select").onchange = e => { l.mat = e.target.value; renderLayers(); };
+    tr.querySelector("input").oninput = e => {
+      const v = parseFloat(e.target.value);
+      if (v > 0) { l.cm = v; updateResult(); updateRow(tr, l); }
+    };
+    tr.querySelector("button").onclick = () => { layers.splice(i, 1); renderLayers(); };
+    tbody.appendChild(tr);
+  });
+  updateResult();
+}
+
+function updateRow(tr, l) {
+  tr.children[3].textContent = fmt((l.cm / 100) / MATERIALS[l.mat].lambda, 3);
+}
+
+function calcU(list) {
+  const rLayers = list.reduce((s, l) => s + (l.cm / 100) / MATERIALS[l.mat].lambda, 0);
+  const rTotal = RSI + rLayers + RSE;
+  return { rTotal, u: 1 / rTotal };
+}
+
+function updateResult() {
+  const { rTotal, u } = calcU(layers);
+  document.getElementById("rTotal").textContent = "Σ " + fmt(rTotal, 3);
+  document.getElementById("uValue").textContent = layers.length ? fmt(u, 2) + " W/(m²K)" : "–";
+  const ok = u <= U_MAX;
+  document.getElementById("uBadge").innerHTML = layers.length
+    ? `<span class="badge ${ok ? "ok" : "bad"}">${ok ? "erfüllt" : "nicht erfüllt"}</span>` : "";
+
+  // Wandschnitt
+  const total = layers.reduce((s, l) => s + l.cm, 0);
+  const wall = document.getElementById("wall");
+  wall.innerHTML = layers.map(l => {
+    const m = MATERIALS[l.mat];
+    const [r, g, b] = [1, 3, 5].map(k => parseInt(m.color.slice(k, k + 2), 16));
+    const light = (0.299 * r + 0.587 * g + 0.114 * b) > 160;
+    const txt = light ? "color:#22201c;text-shadow:none" : "";
+    return `<div style="flex:${l.cm};background:${m.color}" title="${m.name}, ${fmt(l.cm, 1)} cm">${l.cm >= 6 ? `<span style="${txt}">${fmt(l.cm, 0)} cm</span>` : ""}</div>`;
+  }).join("");
+  document.getElementById("wallThickness").textContent = total ? `Gesamtdicke ${fmt(total, 1)} cm` : "";
+}
+
+function loadPreset(name) {
+  layers = PRESETS[name].map(([mat, cm]) => ({ mat, cm }));
+  renderLayers();
+}
+document.querySelectorAll("[data-preset]").forEach(b => b.onclick = () => loadPreset(b.dataset.preset));
+document.getElementById("addLayer").onclick = () => { layers.push({ mat: "mineralwolle", cm: 10 }); renderLayers(); };
+loadPreset("bestand");
+
+/* ============================================================
+   Zweite Perspektive: fehlbare KI
+   Die Aussagen sind bewusst gemischt: richtig, falsch, "kommt drauf an".
+   ============================================================ */
+const AI_CLAIMS = [
+  {
+    text: "Statt zu dämmen, könntest du die Ziegelwand auch auf 36,5 cm verstärken. Dann erreicht sie den Wert von 0,24 ohne Dämmung.",
+    answer: "falsch",
+    explain: "36,5 cm Vollziegel ergeben R = 0,365 / 0,68 ≈ 0,54. Mit Putz und Übergangswiderständen kommt die Wand auf etwa U = 1,34 W/(m²K), also mehr als fünfmal zu hoch. Massives Mauerwerk dämmt schlecht. Dicke allein reicht nicht."
+  },
+  {
+    text: "Für eine Außenwand rechnest du innen mit 0,13 und außen mit 0,04 m²K/W Übergangswiderstand, zusammen also 0,17.",
+    answer: "stimmt",
+    explain: "Richtig. Das sind die Werte für horizontalen Wärmestrom nach DIN EN ISO 6946."
+  },
+  {
+    text: "Den Putz kannst du in der Rechnung weglassen. Er ändert am U-Wert praktisch nichts.",
+    answer: "kommt drauf an",
+    explain: "Zahlenmäßig hat die KI fast recht: In der sanierten Wand verändert der Putz den U-Wert nur in der dritten Nachkommastelle. Für einen Nachweis gehört aber jede Schicht in die Rechnung. Und bei einer ungedämmten Wand ist sein Anteil deutlich größer. Die Aussage ist also eine Faustregel, kein Rechenweg."
+  }
+];
+
+const aiArea = document.getElementById("aiArea");
+document.getElementById("aiOn").onchange = e => {
+  aiArea.hidden = !e.target.checked;
+  document.getElementById("aiSkip").hidden = e.target.checked;
+  if (e.target.checked && !aiArea.childElementCount) renderAI();
+};
+
+function renderAI() {
+  AI_CLAIMS.forEach((c, i) => {
+    const card = document.createElement("div");
+    card.className = "ai-card";
+    card.innerHTML = `
+      <div class="who">KI · Vorschlag ${i + 1}</div>
+      <p style="margin:6px 0 0">${c.text}</p>
+      <div class="choices" role="group" aria-label="Deine Einschätzung zu Vorschlag ${i + 1}">
+        ${["stimmt", "falsch", "kommt drauf an"].map(o => `<button type="button" data-o="${o}">${o}</button>`).join("")}
+      </div>
+      <div class="feedback" hidden></div>`;
+    card.querySelectorAll("button").forEach(b => b.onclick = () => {
+      card.querySelectorAll("button").forEach(x => x.classList.remove("picked"));
+      b.classList.add("picked");
+      const fb = card.querySelector(".feedback");
+      const right = b.dataset.o === c.answer;
+      fb.hidden = false;
+      fb.className = "feedback " + (right ? "ok" : "bad");
+      fb.innerHTML = `<strong>${right ? "Gut geprüft." : "Schau noch einmal hin."}</strong> ${c.explain}`;
+      SCORM.set(`cmi.interactions.${i}.id`, `ki_${i + 1}`);
+      SCORM.set(`cmi.interactions.${i}.result`, right ? "correct" : "wrong");
+    });
+    aiArea.appendChild(card);
+  });
+}
+
+/* ============================================================
+   Abschlusstest
+   ============================================================ */
+const QUIZ = [
+  {
+    q: "Wand A hat U = 0,22, Wand B hat U = 1,77 W/(m²K). Welche Aussage stimmt?",
+    opts: ["Wand B dämmt besser, weil der Wert höher ist.", "Wand A lässt weniger Wärme durch.", "Beide dämmen gleich, der U-Wert sagt nur etwas über die Dicke."],
+    a: 1,
+    ex: "Der U-Wert ist ein Wärmestrom. Je kleiner, desto weniger Wärme geht verloren."
+  },
+  {
+    q: "Wie groß ist der Wärmedurchlasswiderstand R von 10 cm Mineralwolle mit λ = 0,035 W/(mK)?",
+    opts: ["0,35 m²K/W", "2,86 m²K/W", "3,50 m²K/W"],
+    a: 1,
+    ex: "R = d / λ = 0,10 m / 0,035 = 2,86 m²K/W. Achtung: Dicke immer in Metern."
+  },
+  {
+    q: "Wie rechnest du aus den Widerständen den U-Wert?",
+    opts: ["U = Summe aller 1/R", "U = 1 / (R_si + Summe aller R + R_se)", "U = Summe aller R + R_si + R_se"],
+    a: 1,
+    ex: "Die Widerstände liegen hintereinander. Sie werden addiert, dann wird der Kehrwert gebildet."
+  },
+  {
+    q: "Bei der sanierten Wand: Welche Schicht trägt am meisten zum Wärmeschutz bei?",
+    opts: ["Der 24 cm dicke Vollziegel", "Die 14 cm EPS-Dämmung", "Beide etwa gleich viel"],
+    a: 1,
+    ex: "EPS: R = 4,00. Vollziegel: R ≈ 0,35. Die Dämmung leistet mehr als zehnmal so viel, obwohl sie dünner ist."
+  }
+];
+const PASS = 75;
+let quizDone = false;
+
+const form = document.getElementById("quiz");
+form.innerHTML = QUIZ.map((item, i) => `
+  <fieldset id="q${i}">
+    <legend>${i + 1}. ${item.q}</legend>
+    ${item.opts.map((o, k) => `<label class="opt"><input type="radio" name="q${i}" value="${k}"> <span>${o}</span></label>`).join("")}
+    <div class="explain">${item.ex}</div>
+  </fieldset>`).join("");
+
+document.getElementById("checkQuiz").onclick = () => {
+  let right = 0, answered = 0;
+  QUIZ.forEach((item, i) => {
+    const sel = form.querySelector(`input[name=q${i}]:checked`);
+    const fs = document.getElementById("q" + i);
+    fs.classList.remove("correct", "wrong");
+    if (!sel) return;
+    answered++;
+    const ok = Number(sel.value) === item.a;
+    if (ok) right++;
+    fs.classList.add(ok ? "correct" : "wrong");
+  });
+  const out = document.getElementById("quizResult");
+  if (answered < QUIZ.length) {
+    out.innerHTML = `<p>Bitte beantworte alle ${QUIZ.length} Fragen.</p>`;
+    return;
+  }
+  const score = Math.round(right / QUIZ.length * 100);
+  const passed = score >= PASS;
+  out.innerHTML = `<div class="result"><div><div class="small">Ergebnis</div><div class="big">${score} %</div></div>
+    <span class="badge ${passed ? "ok" : "bad"}">${passed ? "bestanden" : "noch nicht bestanden"}</span></div>
+    ${passed ? "" : "<p>Lies die Erklärungen bei den roten Fragen und versuche es noch einmal.</p>"}`;
+  SCORM.reportScore(score, PASS);
+  quizDone = passed;
+  document.getElementById("next").disabled = !passed;
+  document.getElementById("lmsNote").textContent = SCORM.isLMS
+    ? "Dein Ergebnis wurde an die Lernplattform übermittelt."
+    : "Hinweis: Die Einheit läuft gerade ohne Lernplattform. Das Ergebnis wird nicht gespeichert.";
+};
+
+show(0);
+</script>
+</body>
+</html>

@@ -1,0 +1,38 @@
+# Veröffentlicht die Einheit auf GitHub Pages und baut das SCORM-Paket.
+name: Veröffentlichen
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: SCORM-Paket bauen
+        run: bash build.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: scorm-paket
+          path: dist/bauphysik-u-wert_scorm12.zip
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: unit
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
