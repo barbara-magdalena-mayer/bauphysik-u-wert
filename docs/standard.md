@@ -40,6 +40,17 @@ So entstehen Einheiten in dieser Werkstatt. Der Standard sorgt dafür, dass jede
 - Farben über CSS-Variablen, heller und dunkler Modus
 - Mobil zuerst: muss auf 360 px Breite bedienbar sein
 
+## 3a · Lernprotokoll (xAPI)
+
+- `xapi.js` unverändert übernehmen; die Einheit ruft nur `XAPI.record(verb, objekt, ergebnis, extras)` auf
+- Protokolliert wird der **Weg**, nicht nur das Ergebnis: Proben, Urteile, Denkfehler, Testantworten, Selbstkorrekturen
+- Eine Selbstkorrektur ist ein eigenes Statement (`korrigiert`) mit der vorherigen Antwort in `extensions`
+- Nichts doppelt: gleiche Antwort, gleiche Notiz, unveränderte Wand werden nicht erneut protokolliert; Wände erst nach 1,2 s Ruhe
+- Der Abschluss zeigt den Lernweg in Sätzen, erzeugt **nur aus den Statements** (keine zweite Datenquelle)
+- Standard: Pseudonym, nur lokal. Ein LRS nur über Launch-Parameter, Zugangsdaten nie im Code und nie im Speicher
+- Eigene Eingaben im Lernweg immer als Text einsetzen (`textContent`), nie als HTML
+- Verben: ADL-Verben, wo sie passen; eigene Verben unter `https://barbara-magdalena-mayer.github.io/xapi/verbs/`
+
 ## 4 · Barrierefreiheit
 
 - Alle Eingaben haben ein Label (`label` oder `aria-label`)
@@ -58,5 +69,6 @@ So entstehen Einheiten in dieser Werkstatt. Der Standard sorgt dafür, dass jede
 - [ ] Auftrag wird im Abschluss beantwortet
 - [ ] Alle Rechenwerte nachgerechnet
 - [ ] SCORM-Paket in einem Test-LMS hochgeladen, Ergebnis kommt an
+- [ ] Durchlauf mit Fehlern und Korrekturen: alle Statements gültig (xAPI 1.0.3), Lernweg stimmt
 - [ ] Auf dem Handy durchgespielt
 - [ ] Nur mit Tastatur durchgespielt

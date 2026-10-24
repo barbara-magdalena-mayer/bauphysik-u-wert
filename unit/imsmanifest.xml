@@ -23,6 +23,7 @@
     <resource identifier="res_uwert" type="webcontent" adlcp:scormtype="sco" href="index.html">
       <file href="index.html"/>
       <file href="scorm.js"/>
+      <file href="xapi.js"/>
     </resource>
   </resources>
 </manifest>

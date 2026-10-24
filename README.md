@@ -15,6 +15,7 @@ Eine interaktive Lerneinheit zum Wärmeschutz. Lernende sanieren eine Altbauwand
 | **Dauer** | ca. 25 Minuten |
 | **Format** | HTML/JavaScript, ohne Abhängigkeiten, läuft auf dem Handy |
 | **Standard** | SCORM 1.2: importierbar in Moodle, ILIAS, SAP SuccessFactors Learning u. a. |
+| **Lernprotokoll** | xAPI 1.0.3: jede wichtige Handlung als Statement, sichtbar als „Dein Lernweg“; optional an ein LRS |
 | **Bewertung** | Abschlusstest, Bestehensgrenze 75 %, Rückmeldung an das LMS |
 | **Lizenz** | CC BY 4.0 |
 
@@ -24,7 +25,7 @@ Eine interaktive Lerneinheit zum Wärmeschutz. Lernende sanieren eine Altbauwand
 2. **Wissen**: R = d/λ, Übergangswiderstände, U-Wert, die Methode **Probe durch Einsetzen** und **Den Denkfehler benennen**
 3. **Arbeitsblatt**: vier Wände A–D nebeneinander (Bestand, Sanierung, zwei freie Spalten), eine Vergleichsleiste mit allen U-Werten, das Feld „Meine Erkenntnisse“. Dazu optional die KI: Ihre Aussagen sind gemischt (richtig, falsch, „kommt drauf an“). Jede Aussage wird erst durch Einsetzen in Spalte C oder D geprüft, dann beurteilt. Zu jeder Probe notieren die Lernenden, was sie eingesetzt haben und was herauskam, und sie benennen den **Denkfehler**. Erst dann können sie urteilen. Danach sehen sie, wie der Denkfehler fachlich heißt, und vergleichen. Dazu gibt es das Feld „Meine Regeln“: Jede Regel wird offen begründet („Regel: Wenn …, dann … – weil …“).
 4. **Abschlusstest**: vier Fragen mit Erklärungen. Bei jeder falschen Antwort erklären die Lernenden zuerst ihren eigenen Denkfehler, wie in einer mündlichen Prüfung. Erst dann sehen sie den typischen Denkfehler zu ihrer Antwort und können erneut auswerten oder weitergehen.
-5. **Abschluss**: Antwort auf den Kundenauftrag, der eigene Erkenntnisweg (Erkenntnisse, Regeln, Proben, eigene Denkfehler), Fragen zum Weiterdenken
+5. **Abschluss**: Antwort auf den Kundenauftrag, der eigene Erkenntnisweg (Erkenntnisse, Regeln, Proben, eigene Denkfehler), der **Lernweg** aus dem xAPI-Protokoll (siehe unten), Fragen zum Weiterdenken
 
 Oben gibt es immer „↺ Neu beginnen“ (zweimal tippen) und auf der Website „← Werkstatt“. Spalten und Notizen bleiben auf dem eigenen Gerät gespeichert, in einer Lernplattform zusätzlich in `cmi.suspend_data`.
 
@@ -37,6 +38,31 @@ KI kann jede und jeder benutzen. Was zählt, ist die Begründung: Wer einen Fehl
 Im Prototyp sind die drei KI-Aussagen vorbereitet und reagieren noch nicht auf die Wand, die die Lernenden bauen.
 
 Zum Abschluss geht es erst nach bestandenem Test (75 %). Der Test lässt sich beliebig oft wiederholen, die Erklärungen helfen beim zweiten Versuch.
+
+## Lernweg mit xAPI
+
+SCORM meldet nur das Ergebnis („bestanden, 75 %“). Diese Einheit hält zusätzlich den **Weg** fest, im Standard **xAPI** (Experience API 1.0.3). Jede wichtige Handlung wird ein Satz nach dem Muster *Wer – tut was – womit – mit welchem Ergebnis*:
+
+> lernende-3f2a… · hat zur Probe eingesetzt · KI-Vorschlag 1 · U = 1,34 W/(m²K), nicht erfüllt
+
+Aufgezeichnet werden: Wände berechnet, Proben durch Einsetzen, Urteile über die KI-Aussagen, Notizen und offengelegte Denkfehler, Testantworten, **Selbstkorrekturen** (erst falsch, dann richtig), Rückwege zum Arbeitsblatt, Abschluss.
+
+Im Abschluss sehen die Lernenden daraus ihren Lernweg: eine Zeitleiste mit Zählern („2 Denkfehler offengelegt, 2-mal selbst korrigiert“). Fehler werden nicht versteckt, sie gehören zum Weg. Die „Technische Ansicht“ zeigt dieselben Daten als xAPI-JSON, „Lernweg herunterladen“ speichert sie als Datei.
+
+**Zwei Stufen**
+
+1. **Ohne LRS (Standard):** Die Statements bleiben im Browser des Geräts. Die Person ist nur ein zufälliges Pseudonym (`lernende-xxxxxxxx`), kein Name. Nichts wird verschickt.
+2. **Mit LRS:** Wird die Einheit mit den üblichen Launch-Parametern geöffnet, schickt sie jedes Statement zusätzlich an diesen Lernprotokoll-Speicher:
+   ```
+   index.html?endpoint=https://lrs.example/xapi/&auth=Basic%20…&actor={"account":{"homePage":"…","name":"…"}}&registration=…
+   ```
+   Der Zugangsschlüssel steht nur in der Startadresse und wird nicht gespeichert.
+
+Technik: [`unit/xapi.js`](unit/xapi.js), ohne Bibliotheken. Standard-Verben von ADL (`answered`, `commented`, `passed` …), zwei eigene Verben für diese Werkstatt: `…/xapi/verbs/eingesetzt` (Probe durch Einsetzen) und `…/xapi/verbs/korrigiert` (Selbstkorrektur).
+
+**Geprüft:** Ein vollständiger Durchlauf (mit Fehlern, Korrekturen und Rückweg) erzeugt 24 Statements. Alle sind gültig nach xAPI 1.0.3, geprüft mit ADLs Bibliothek [TinCanPython](https://github.com/RusticiSoftware/TinCanPython) und eigenen Regeln. An einen nachgebauten LRS kamen alle an. Mit einem echten LRS ist die Einheit noch nicht erprobt.
+
+**Datenschutz:** Ein Lernweg mit Namen ist ein personenbezogenes Datum (DSGVO). Wer Stufe 2 einsetzt, braucht eine Rechtsgrundlage, muss die Lernenden informieren und sollte Pseudonyme statt Namen übergeben. Freitexte (Notizen, Denkfehler) werden mitgeschickt.
 
 ## Selbst bauen und einsetzen
 

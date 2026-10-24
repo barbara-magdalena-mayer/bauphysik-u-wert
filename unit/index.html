@@ -179,6 +179,26 @@
   .result .big { font-size: 28px; font-weight: 700; font-variant-numeric: tabular-nums; }
   .my-notes { white-space: pre-wrap; background: var(--bg); border-radius: 8px; padding: 12px 14px; font-size: 15px; max-width: 72ch; }
   footer a { color: inherit; }
+  /* Lernweg (xAPI) */
+  .path-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px; margin: 10px 0 14px; max-width: 72ch; }
+  .path-stats div { background: var(--bg); border-radius: 8px; padding: 10px 12px; }
+  .path-stats b { display: block; font-size: 24px; font-variant-numeric: tabular-nums; }
+  .path-stats span { font-size: 13px; color: var(--muted); }
+  ol.path { list-style: none; margin: 0; padding: 0 0 0 14px; border-left: 2px solid var(--line); max-width: 72ch; }
+  ol.path li { position: relative; padding: 6px 8px 6px 12px; font-size: 15px; }
+  ol.path li::before {
+    content: ""; position: absolute; left: -21px; top: 12px; width: 10px; height: 10px; border-radius: 50%;
+    background: var(--line); border: 2px solid var(--paper);
+  }
+  ol.path li .t { color: var(--muted); font-size: 12px; margin-right: 8px; font-variant-numeric: tabular-nums; }
+  ol.path li.hit::before { background: var(--ok); }
+  ol.path li.miss::before { background: var(--bad); }
+  ol.path li.probe::before, ol.path li.opendf::before { background: var(--ai); }
+  ol.path li.back::before { background: var(--accent); }
+  ol.path li.fix { background: var(--ok-soft); border-radius: 6px; font-weight: 600; }
+  ol.path li.fix::before { background: var(--ok); }
+  ol.path li.empty { color: var(--muted); }
+  pre.raw { max-height: 380px; overflow: auto; background: var(--bg); padding: 12px; border-radius: 8px; font-size: 12px; line-height: 1.4; white-space: pre-wrap; word-break: break-word; }
   @media (max-width: 520px) {
     section.step { padding: 14px; }
     .topnav { padding-right: 0; }
@@ -316,6 +336,16 @@
     </div>
     <h3>Dein Erkenntnisweg</h3>
     <div class="my-notes" id="myNotes"></div>
+    <h3>Dein Lernweg</h3>
+    <p style="margin-top:0">So bist du vorgegangen. Auch Umwege und Fehler gehören dazu: Sie zeigen, wie du zu deinem Ergebnis gekommen bist.</p>
+    <div class="path-stats" id="pathStats"></div>
+    <ol class="path" id="pathList" aria-label="Dein Lernweg, Schritt für Schritt"></ol>
+    <p class="small" id="pathInfo"></p>
+    <div class="row">
+      <button type="button" id="toggleRaw" aria-expanded="false" aria-controls="rawLog">Technische Ansicht (xAPI)</button>
+      <button type="button" id="downloadLog">Lernweg herunterladen (JSON)</button>
+    </div>
+    <pre class="raw" id="rawLog" hidden></pre>
     <h3>Zum Weiterdenken</h3>
     <ul>
       <li>Warum lohnt sich der erste Zentimeter Dämmung mehr als der zwanzigste? Probiere es in Spalte C aus.</li>
@@ -336,9 +366,14 @@
 </footer>
 
 <script src="scorm.js"></script>
+<script src="xapi.js"></script>
 <script>
-/* Ersatz, falls scorm.js fehlt (z. B. index.html allein eingebunden) */
+/* Ersatz, falls scorm.js oder xapi.js fehlt (z. B. index.html allein eingebunden) */
 if (typeof SCORM === "undefined") window.SCORM = { isLMS: false, init() {}, set() {}, commit() {}, reportScore() {}, finish() {} };
+if (typeof XAPI === "undefined") window.XAPI = {
+  init() {}, record() { return null; }, reset() {}, verbKey() {}, last() { return null; }, ext: n => n, flush() {},
+  onRecord() {}, statements: () => [], sentCount: () => 0, actor: null, connected: false, missing: true
+};
 
 /* ============================================================
    Daten
@@ -405,7 +440,16 @@ const progress = document.getElementById("progress");
 steps.forEach(() => progress.appendChild(document.createElement("span")));
 
 function show(i) {
+  const prev = current;
   current = Math.max(0, Math.min(steps.length - 1, i));
+  if (xapiLive && current !== prev) {
+    XAPI.record("experienced",
+      { path: "schritt/" + (current + 1), name: `Schritt ${current + 1}: ${steps[current].dataset.title}`, type: "module" },
+      null, { richtung: current < prev ? "zurück" : "vor" });
+  }
+  if (xapiLive && current === steps.length - 1 && !XAPI.last("", "completed")) {
+    XAPI.record("completed", UNIT, { completion: true });
+  }
   steps.forEach((s, k) => s.classList.toggle("active", k === current));
   document.body.classList.toggle("wide", steps[current].dataset.wide === "1");
   [...progress.children].forEach((p, k) => p.classList.toggle("done", k <= current));
@@ -413,7 +457,7 @@ function show(i) {
   const next = document.getElementById("next");
   next.hidden = current === steps.length - 1;
   next.disabled = current === QUIZ_STEP && !(quizDone && wrongNow.every(([q]) => g(`q${q}_df`).length >= MIN_DF));   // bestanden und alle Fehler erklärt
-  if (current === steps.length - 1) renderMyNotes();
+  if (current === steps.length - 1) { renderMyNotes(); renderPath(); }
   SCORM.set("cmi.core.lesson_location", current);
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
@@ -531,6 +575,7 @@ function updateCol(i) {
   }).join("");
   el.querySelector(".thick").textContent = total ? `${fmt(total, 1)} cm` : "";
   renderCompare();
+  scheduleWallLog(i);
 }
 
 function renderCompare() {
@@ -559,6 +604,7 @@ function focusCol(i) {
 function bindNote(ta) {
   ta.value = notes[ta.dataset.note] || "";
   ta.oninput = () => { notes[ta.dataset.note] = ta.value; save(); };
+  ta.addEventListener("change", () => logNote(ta.dataset.note, ta.value));   // "change" kommt beim Verlassen des Feldes
 }
 bindNote(document.getElementById("noteMain"));
 bindNote(document.getElementById("noteRules"));
@@ -673,6 +719,7 @@ function renderAI() {
       const k = +b.dataset.col;
       cols[k] = makeCol(c.probe.name, c.probe.layers);
       renderCol(k); renderCompare(); save();
+      logProbe(i, k);
       focusCol(k);
       document.getElementById("compare").scrollIntoView({ behavior: "smooth", block: "start" });
       probed = k; gate();
@@ -689,6 +736,7 @@ function renderAI() {
         <p class="small" style="margin:6px 0 0">Vergleiche mit deiner Formulierung. Fehlt etwas? Ergänze es oben in deinen eigenen Worten.</p>`;
       SCORM.set(`cmi.interactions.${i}.id`, `ki_${i + 1}`);
       SCORM.set(`cmi.interactions.${i}.result`, right ? "correct" : "wrong");
+      logKI(i, b.dataset.o, right);
     });
     aiArea.appendChild(card);
   });
@@ -791,12 +839,15 @@ document.getElementById("checkQuiz").onclick = () => {
     ${wrongNow.length ? "<p>Bei jeder roten Frage erklärst du zuerst deinen Denkfehler, wie in einer mündlichen Prüfung." + (passed ? "" : " Danach rechnest du auf dem Arbeitsblatt nach und versuchst es noch einmal.") + "</p>" : ""}
     <p class="gate-msg" id="gateMsg" aria-live="polite"></p>`;
   SCORM.reportScore(score, PASS);
+  logQuiz(score, passed);
   quizDone = passed;
   document.getElementById("checkQuiz").textContent = "Erneut auswerten";
   quizGate();
   document.getElementById("lmsNote").textContent = SCORM.isLMS
     ? "Dein Ergebnis wurde an die Lernplattform übermittelt."
-    : "Hinweis: Die Einheit läuft gerade ohne Lernplattform. Das Ergebnis wird nicht gespeichert.";
+    : XAPI.connected
+      ? "Hinweis: Die Einheit läuft ohne Lernplattform. Dein Lernweg wird aber an den Lernprotokoll-Speicher (LRS) übertragen."
+      : "Hinweis: Die Einheit läuft gerade ohne Lernplattform. Das Ergebnis wird nur auf diesem Gerät gespeichert.";
 };
 
 /* ============================================================
@@ -825,11 +876,193 @@ restart.onclick = () => {
   form.querySelectorAll("fieldset").forEach(f => f.classList.remove("correct", "wrong"));
   document.getElementById("quizResult").innerHTML = "";
   quizDone = false;
+  XAPI.reset(); xapiLive = false;
   buildSheet(); save(); show(0);
+  startXAPI();
 };
 
+/* ============================================================
+   Lernweg mit xAPI
+   Jede wichtige Handlung wird als xAPI-Statement festgehalten
+   (siehe xapi.js) und im Abschluss als Lernweg gezeigt.
+   ============================================================ */
+const UNIT = { path: "", name: "Bauphysik: Der U-Wert einer Außenwand", type: "lesson" };
+let xapiLive = false;   // erst nach dem Aufbau mitschreiben, nicht beim Laden der Vorlagen
+const wallTimers = [], wallSig = [];
+const layerText = c => c.layers.map(l => `${fmt(l.cm, 1)} cm ${MATERIALS[l.mat].name}`).join(" | ");
+
+function wallExtras(i) {
+  const r = calcU(cols[i].layers);
+  if (!r) return null;
+  return { spalte: LETTERS[i], "u-wert": Math.round(r.u * 1000) / 1000, "anforderung-erfuellt": r.u <= U_MAX,
+           schichten: layerText(cols[i]), bezeichnung: cols[i].name };
+}
+
+/* Wände erst protokollieren, wenn 1,2 s lang nichts mehr geändert wurde (nicht jeden Tastendruck). */
+function scheduleWallLog(i) {
+  if (!xapiLive) return;
+  clearTimeout(wallTimers[i]);
+  wallTimers[i] = setTimeout(() => {
+    const sig = layerText(cols[i]);
+    if (sig === wallSig[i]) return;
+    wallSig[i] = sig;
+    const x = wallExtras(i);
+    if (x) XAPI.record("interacted", { path: "wand/" + LETTERS[i], name: "Wand " + LETTERS[i], type: "interaction" }, null, x);
+  }, 1200);
+}
+
+function logProbe(claim, k) {
+  clearTimeout(wallTimers[k]); wallSig[k] = layerText(cols[k]);   // nicht doppelt als "berechnet" zählen
+  XAPI.record("probed", { path: `ki/vorschlag-${claim + 1}`, name: `KI-Vorschlag ${claim + 1}`, type: "question" },
+    null, wallExtras(k) || { spalte: LETTERS[k] });
+}
+
+function logKI(i, choice, right) {
+  const obj = { path: `ki/vorschlag-${i + 1}`, name: `KI-Vorschlag ${i + 1}`, type: "question" };
+  const before = XAPI.last(obj.path, "answered");
+  XAPI.record("answered", obj, { success: right, response: choice });
+  if (before && before.result && before.result.success === false && right) {
+    XAPI.record("corrected", obj, { success: true, response: choice }, { vorher: before.result.response });
+  }
+}
+
+function noteName(key) {
+  let m;
+  if (key === "main") return "Meine Erkenntnisse";
+  if (key === "rules") return "Meine Regeln";
+  if ((m = /^ki(\d+)_(ein|erg|df)$/.exec(key))) return `KI-Vorschlag ${m[1]}: ${{ ein: "Eingesetzt", erg: "Ergebnis", df: "Denkfehler" }[m[2]]}`;
+  if ((m = /^q(\d+)_df$/.exec(key))) return `Testfrage ${+m[1] + 1}: mein Denkfehler`;
+  return key;
+}
+
+function logNote(key, text) {
+  const t = String(text || "").trim();
+  if (!xapiLive || !t) return;
+  const before = XAPI.last("notiz/" + key, "commented");
+  if (before && before.result.response === t.slice(0, 1000)) return;   // unveränderte Notiz nicht doppelt
+  XAPI.record("commented", { path: "notiz/" + key, name: noteName(key), type: "note" },
+    { response: t.slice(0, 1000) }, { denkfehler: /_df$/.test(key) });
+}
+
+function logQuiz(score, passed) {
+  QUIZ.forEach((item, i) => {
+    const sel = Number(form.querySelector(`input[name=q${i}]:checked`).value);
+    const ok = sel === item.a, response = item.opts[sel];
+    const obj = { path: `test/frage-${i + 1}`, name: `Testfrage ${i + 1}`, type: "question" };
+    const before = XAPI.last(obj.path, "answered");
+    if (before && before.result.response === response) return;   // gleiche Antwort nicht doppelt
+    XAPI.record("answered", obj, { success: ok, response });
+    if (before && before.result.success === false && ok) {
+      XAPI.record("corrected", obj, { success: true, response }, { vorher: before.result.response });
+    }
+  });
+  XAPI.record(passed ? "passed" : "failed", { path: "test", name: "Abschlusstest", type: "assessment" },
+    { score: { scaled: score / 100, raw: score, min: 0, max: 100 }, success: passed, completion: true });
+}
+
+/* Ein Statement in einen verständlichen Satz übersetzen. Die Daten kommen nur aus dem Statement. */
+function describe(s, opened) {
+  const k = XAPI.verbKey(s), name = s.object.definition.name["de-DE"];
+  const r = s.result || {}, x = r.extensions || {}, X = n => x[XAPI.ext(n)];
+  const uTxt = X("u-wert") != null ? `U = ${fmt(X("u-wert"), 2)} W/(m²K), ${X("anforderung-erfuellt") ? "erfüllt" : "nicht erfüllt"}` : "";
+  const short = t => (t = String(t || "")).length > 140 ? t.slice(0, 140) + " …" : t;
+  const isKI = s.object.id.includes("/ki/");
+  const q = t => `„${String(t).replace(/[.!?]$/, "")}“`;   // Zitat ohne eigenen Schlusspunkt
+  switch (k) {
+    case "initialized": return { text: opened ? "Du hast die Einheit wieder geöffnet." : "Du hast die Einheit begonnen." };
+    case "experienced":
+      return X("richtung") === "zurück" ? { text: `Du bist zurückgegangen: ${name.replace(/^Schritt \d+: /, "")}.`, cls: "back" } : null;
+    case "interacted": {
+      // Eigene Bezeichnung nur zeigen, wenn die Lernenden sie selbst vergeben haben
+      const own = X("bezeichnung") && ![PRESETS.bestand.name, PRESETS.saniert.name, "Frei für eigene Versuche"].includes(X("bezeichnung"))
+        && !/^Probe KI/.test(X("bezeichnung"));
+      return { text: `Du hast ${name}${own ? " („" + X("bezeichnung") + "“)" : ""} berechnet: ${uTxt}.`, title: X("schichten") };
+    }
+    case "probed": return { text: `Probe durch Einsetzen: ${name} in Spalte ${X("spalte")}${uTxt ? " – " + uTxt : ""}.`, cls: "probe" };
+    case "answered":
+      return isKI
+        ? { text: `Du hast ${name} als „${r.response}“ beurteilt – ${r.success ? "zutreffend" : "nicht zutreffend"}.`, cls: r.success ? "hit" : "miss" }
+        : { text: `${name}: ${q(r.response)} – ${r.success ? "richtig" : "nicht richtig"}.`, cls: r.success ? "hit" : "miss" };
+    case "corrected": return { text: `Du hast dich korrigiert bei ${name}: vorher ${q(X("vorher"))}, jetzt ${q(r.response)}.`, cls: "fix" };
+    case "commented":
+      return X("denkfehler")
+        ? { text: `Denkfehler offengelegt (${name}): „${short(r.response)}“`, cls: "opendf" }
+        : { text: `Notiert (${name}): „${short(r.response)}“` };
+    case "passed": case "failed":
+      return { text: `Abschlusstest ausgewertet: ${r.score.raw} % – ${k === "passed" ? "bestanden" : "noch nicht bestanden"}.`, cls: k === "passed" ? "hit" : "miss" };
+    case "completed": return { text: "Du hast die Einheit abgeschlossen.", cls: "hit" };
+  }
+  return null;
+}
+
+function renderPath() {
+  const all = XAPI.statements();
+  const list = document.getElementById("pathList");
+  list.innerHTML = "";
+  let opened = false;
+  all.forEach(s => {
+    const d = describe(s, opened);
+    if (XAPI.verbKey(s) === "initialized") opened = true;
+    if (!d) return;
+    const li = document.createElement("li");
+    if (d.cls) li.className = d.cls;
+    if (d.title) li.title = d.title;
+    const t = document.createElement("span");
+    t.className = "t";
+    t.textContent = new Date(s.timestamp).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" });
+    li.append(t, document.createTextNode(d.text));   // textContent: eigene Eingaben werden nie als HTML gelesen
+    list.appendChild(li);
+  });
+  if (!list.childElementCount) {
+    list.innerHTML = `<li class="empty">${XAPI.missing ? "Das Lernprotokoll ist in dieser Fassung nicht verfügbar (xapi.js fehlt)." : "Noch nichts aufgezeichnet."}</li>`;
+  }
+
+  const count = (verb, f = () => true) => all.filter(s => XAPI.verbKey(s) === verb && f(s)).length;
+  const dfPaths = new Set(all.filter(s => XAPI.verbKey(s) === "commented" && s.result.extensions[XAPI.ext("denkfehler")]).map(s => s.object.id));
+  const stats = [
+    [count("interacted"), "Wände berechnet"],
+    [count("probed"), "Proben durch Einsetzen"],
+    [dfPaths.size, "Denkfehler offengelegt"],
+    [count("corrected"), "Mal selbst korrigiert"]
+  ];
+  document.getElementById("pathStats").innerHTML = stats.map(([n, l]) => `<div><b>${n}</b><span>${l}</span></div>`).join("");
+
+  const who = XAPI.actor && XAPI.actor.account ? XAPI.actor.account.name : "";
+  document.getElementById("pathInfo").textContent = XAPI.connected
+    ? `Aufgezeichnet im Standard xAPI und an einen Lernprotokoll-Speicher (LRS) übertragen: ${XAPI.sentCount()} von ${all.length} Einträgen.`
+    : `Aufgezeichnet im Standard xAPI. Gespeichert nur auf diesem Gerät${who ? ", unter dem Pseudonym „" + who + "“" : ""}. Nichts wird verschickt.`;
+  const raw = document.getElementById("rawLog");
+  if (!raw.hidden) raw.textContent = JSON.stringify(all, null, 2);
+}
+
+function startXAPI() {
+  syncWallSigs();
+  xapiLive = true;
+  XAPI.record("initialized", UNIT);
+}
+function syncWallSigs() { cols.forEach((c, i) => { clearTimeout(wallTimers[i]); wallSig[i] = layerText(c); }); }
+
+document.getElementById("toggleRaw").onclick = e => {
+  const raw = document.getElementById("rawLog");
+  raw.hidden = !raw.hidden;
+  e.target.setAttribute("aria-expanded", String(!raw.hidden));
+  e.target.textContent = raw.hidden ? "Technische Ansicht (xAPI)" : "Technische Ansicht schließen";
+  renderPath();
+};
+document.getElementById("downloadLog").onclick = () => {
+  const blob = new Blob([JSON.stringify(XAPI.statements(), null, 2)], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "lernweg-u-wert-xapi.json";
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+};
+XAPI.onRecord(() => { if (current === steps.length - 1) renderPath(); });
+
+XAPI.init();
 buildSheet();
 show(0);
+startXAPI();
 </script>
 <script>
 /* Nur auf der Werkstatt-Website: Rückweg und Figur. In einer Lernplattform bleibt beides weg. */

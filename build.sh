@@ -6,5 +6,5 @@ set -euo pipefail
 cd "$(dirname "$0")"
 mkdir -p dist
 rm -f dist/bauphysik-u-wert_scorm12.zip
-(cd unit && zip -q -r ../dist/bauphysik-u-wert_scorm12.zip imsmanifest.xml index.html scorm.js)
+(cd unit && zip -q -r ../dist/bauphysik-u-wert_scorm12.zip imsmanifest.xml index.html scorm.js xapi.js)
 echo "Fertig: dist/bauphysik-u-wert_scorm12.zip"
