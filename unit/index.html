@@ -231,7 +231,7 @@
   <nav class="topnav" aria-label="Navigation">
     <a id="homeLink" href="https://barbara-magdalena-mayer.github.io/" hidden>← Werkstatt</a>
     <button type="button" id="restart">↺ Neu beginnen</button>
-    <button type="button" id="techBtn" aria-expanded="false" aria-controls="techPanel">⚙ Technik: SCORM &amp; xAPI</button>
+    <button type="button" id="techBtn" hidden aria-expanded="false" aria-controls="techPanel">⚙ Technik: SCORM &amp; xAPI</button>
   </nav>
   <div class="kicker">Bauphysik · Wärmeschutz</div>
   <h1>Deine Wand verliert Wärme. Wie viel?</h1>
@@ -389,8 +389,10 @@
     </div>
     <h3>Dein Erkenntnisweg</h3>
     <div class="my-notes" id="myNotes"></div>
-    <h3>Was die Technik von deinem Durchlauf sieht</h3>
-    <div class="sees" id="sees"></div>
+    <div id="seesBox" hidden>
+      <h3>Was die Technik von deinem Durchlauf sieht</h3>
+      <div class="sees" id="sees"></div>
+    </div>
     <h3>Dein Lernweg</h3>
     <p style="margin-top:0">So bist du vorgegangen. Auch Umwege und Fehler gehören dazu: Sie zeigen, wie du zu deinem Ergebnis gekommen bist.</p>
     <div class="path-stats" id="pathStats"></div>
@@ -1164,6 +1166,13 @@ show(0);
 startXAPI();
 </script>
 <script>
+/* Technik-Erklärung (Knopf oben, Vergleich im Abschluss) nur als Arbeitsprobe zeigen:
+   auf der Werkstatt-Website und beim lokalen Öffnen der Datei. In einer Lernplattform bleibt sie weg. */
+if (location.hostname === "barbara-magdalena-mayer.github.io" || location.protocol === "file:"
+    || location.hostname === "localhost" || location.hostname === "127.0.0.1") {
+  document.getElementById("techBtn").hidden = false;
+  document.getElementById("seesBox").hidden = false;
+}
 /* Nur auf der Werkstatt-Website: Rückweg und Figur. In einer Lernplattform bleibt beides weg. */
 if (location.hostname === "barbara-magdalena-mayer.github.io") {
   const home = "https://barbara-magdalena-mayer.github.io/";
