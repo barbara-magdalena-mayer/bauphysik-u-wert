@@ -47,6 +47,8 @@ SCORM meldet nur das Ergebnis („bestanden, 75 %“). Diese Einheit hält zusä
 
 Aufgezeichnet werden: Wände berechnet, Proben durch Einsetzen, Urteile über die KI-Aussagen, Notizen und offengelegte Denkfehler, Testantworten, **Selbstkorrekturen** (erst falsch, dann richtig), Rückwege zum Arbeitsblatt, Abschluss.
 
+Wer die Einheit öffnet, findet oben auf jeder Seite den Knopf **„⚙ Technik: SCORM & xAPI“**. Er erklärt in einfacher Sprache den Unterschied (Zeugnis gegen Tagebuch), zeigt, welcher Standard gerade aktiv ist, und zeigt live den letzten xAPI-Eintrag als Satz und als JSON. Im Abschluss steht derselbe Durchlauf zweimal nebeneinander: „SCORM sieht: bestanden · 100 %“ und „xAPI sieht: 24 Einträge, darunter 2 Selbstkorrekturen …“.
+
 Im Abschluss sehen die Lernenden daraus ihren Lernweg: eine Zeitleiste mit Zählern („2 Denkfehler offengelegt, 2-mal selbst korrigiert“). Fehler werden nicht versteckt, sie gehören zum Weg. Die „Technische Ansicht“ zeigt dieselben Daten als xAPI-JSON, „Lernweg herunterladen“ speichert sie als Datei.
 
 **Zwei Stufen**

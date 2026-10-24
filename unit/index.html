@@ -198,6 +198,26 @@
   ol.path li.fix { background: var(--ok-soft); border-radius: 6px; font-weight: 600; }
   ol.path li.fix::before { background: var(--ok); }
   ol.path li.empty { color: var(--muted); }
+  /* Technik-Erklärung */
+  .tech { margin: 14px 0 4px; padding: 16px; border: 1px solid var(--ai); background: var(--ai-soft); border-radius: var(--radius); }
+  .tech h2 { margin-bottom: 8px; }
+  .tech p { max-width: 72ch; }
+  .tech-table { background: var(--paper); border-radius: 8px; overflow: hidden; margin: 10px 0 14px; table-layout: fixed; }
+  .tech-table thead th { color: var(--ink); font-size: 15px; width: 50%; background: var(--bg); }
+  .tech-table tbody th { padding-top: 10px; font-size: 12px; text-transform: uppercase; letter-spacing: .05em; border-bottom: 0; }
+  .tech-table td { vertical-align: top; font-size: 14px; }
+  .tech-table td + td, .tech-table thead th + th { border-left: 1px solid var(--line); }
+  .tech-live { background: var(--paper); border-radius: 8px; padding: 12px; margin: 10px 0; }
+  .tech-live pre.raw { max-height: 200px; margin: 0; }
+  .tech a { color: inherit; }
+  .topnav button[aria-expanded="true"] { border-color: var(--ai); background: var(--ai-soft); }
+  .sees { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; max-width: 72ch; }
+  .sees > div { border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; background: var(--paper); }
+  .sees .std { font-size: 13px; font-weight: 700; color: var(--muted); }
+  .sees .x { border-color: var(--ai); background: var(--ai-soft); }
+  .sees .x .std { color: var(--ai); }
+  .sees b { display: block; font-size: 20px; margin: 4px 0; }
+  .sees p { margin: 4px 0 0; font-size: 14px; }
   pre.raw { max-height: 380px; overflow: auto; background: var(--bg); padding: 12px; border-radius: 8px; font-size: 12px; line-height: 1.4; white-space: pre-wrap; word-break: break-word; }
   @media (max-width: 520px) {
     section.step { padding: 14px; }
@@ -211,10 +231,43 @@
   <nav class="topnav" aria-label="Navigation">
     <a id="homeLink" href="https://barbara-magdalena-mayer.github.io/" hidden>← Werkstatt</a>
     <button type="button" id="restart">↺ Neu beginnen</button>
+    <button type="button" id="techBtn" aria-expanded="false" aria-controls="techPanel">⚙ Technik: SCORM &amp; xAPI</button>
   </nav>
   <div class="kicker">Bauphysik · Wärmeschutz</div>
   <h1>Deine Wand verliert Wärme. Wie viel?</h1>
   <div class="progress" aria-hidden="true" id="progress"></div>
+
+  <section class="tech" id="techPanel" hidden aria-labelledby="techTitle">
+    <h2 id="techTitle">Wie funktioniert das technisch?</h2>
+    <p>Diese Einheit nutzt <strong>zwei Standards gleichzeitig</strong>. Beide melden, was beim Lernen passiert, aber sie sehen sehr Verschiedenes.</p>
+    <table class="tech-table">
+      <thead><tr><th scope="col">SCORM 1.2</th><th scope="col">xAPI 1.0.3</th></tr></thead>
+      <tbody>
+        <tr><th colspan="2" scope="colgroup">Vergleich</th></tr>
+        <tr><td>Wie ein <strong>Zeugnis</strong></td><td>Wie ein <strong>Tagebuch</strong></td></tr>
+        <tr><th colspan="2" scope="colgroup">Was wird gespeichert?</th></tr>
+        <tr><td>Status, Punktzahl, wo man aufgehört hat</td><td>Jede wichtige Handlung als Satz: <em>Wer – tut was – womit – mit welchem Ergebnis</em></td></tr>
+        <tr><th colspan="2" scope="colgroup">Wo funktioniert es?</th></tr>
+        <tr><td>Nur in einer Lernplattform (z. B. Moodle, ILIAS, SAP SuccessFactors)</td><td>Überall: Website, App, Lernplattform</td></tr>
+        <tr><th colspan="2" scope="colgroup">Wohin gehen die Daten?</th></tr>
+        <tr><td>An die Lernplattform</td><td>An einen Lernprotokoll-Speicher (LRS). Hier: nur auf deinem Gerät, unter einer Zufallsnummer</td></tr>
+        <tr><th colspan="2" scope="colgroup">Was erfährt man?</th></tr>
+        <tr><td><strong>Ob</strong> jemand bestanden hat</td><td><strong>Wie</strong> jemand gelernt hat, mit Umwegen, Fehlern und Korrekturen</td></tr>
+      </tbody>
+    </table>
+    <p><strong>Warum beides?</strong> Fast jede Lernplattform versteht SCORM, deshalb meldet der Abschlusstest sein Ergebnis so. Das Wichtigste dieser Einheit sieht SCORM aber nicht: Hier lernt man, indem man Aussagen nachrechnet, Denkfehler benennt und sich selbst korrigiert. Diesen Weg hält xAPI fest. Im Abschluss sehen die Lernenden ihn als „Dein Lernweg“.</p>
+
+    <div class="tech-live">
+      <div class="small"><strong>Gerade aktiv</strong></div>
+      <p id="techStatus" style="margin:4px 0 10px"></p>
+      <div class="small"><strong>Letzter xAPI-Eintrag</strong> (ändert sich, sobald du etwas tust)</div>
+      <p id="techLastText" style="margin:4px 0 6px"></p>
+      <pre class="raw" id="techLastRaw"></pre>
+    </div>
+    <p class="small">Probier es aus: Mach auf dem Arbeitsblatt absichtlich einen Fehler, korrigiere ihn und schau am Ende in „Dein Lernweg“.
+      Quellcode und Dokumentation: <a href="https://github.com/barbara-magdalena-mayer/bauphysik-u-wert#lernweg-mit-xapi" target="_blank" rel="noopener">GitHub</a>.</p>
+    <button type="button" id="techClose">Schließen</button>
+  </section>
 </header>
 
 <main>
@@ -336,6 +389,8 @@
     </div>
     <h3>Dein Erkenntnisweg</h3>
     <div class="my-notes" id="myNotes"></div>
+    <h3>Was die Technik von deinem Durchlauf sieht</h3>
+    <div class="sees" id="sees"></div>
     <h3>Dein Lernweg</h3>
     <p style="margin-top:0">So bist du vorgegangen. Auch Umwege und Fehler gehören dazu: Sie zeigen, wie du zu deinem Ergebnis gekommen bist.</p>
     <div class="path-stats" id="pathStats"></div>
@@ -457,7 +512,7 @@ function show(i) {
   const next = document.getElementById("next");
   next.hidden = current === steps.length - 1;
   next.disabled = current === QUIZ_STEP && !(quizDone && wrongNow.every(([q]) => g(`q${q}_df`).length >= MIN_DF));   // bestanden und alle Fehler erklärt
-  if (current === steps.length - 1) { renderMyNotes(); renderPath(); }
+  if (current === steps.length - 1) { renderMyNotes(); renderPath(); renderSees(); }
   SCORM.set("cmi.core.lesson_location", current);
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
@@ -1057,7 +1112,51 @@ document.getElementById("downloadLog").onclick = () => {
   document.body.appendChild(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 };
-XAPI.onRecord(() => { if (current === steps.length - 1) renderPath(); });
+/* Technik-Erklärung: Knopf oben, auf jeder Seite */
+const techPanel = document.getElementById("techPanel"), techBtn = document.getElementById("techBtn");
+function setTech(open) {
+  techPanel.hidden = !open;
+  techBtn.setAttribute("aria-expanded", String(open));
+  if (open) { renderTech(); techPanel.scrollIntoView({ behavior: "smooth", block: "start" }); }
+  else techBtn.focus();
+}
+techBtn.onclick = () => setTech(techPanel.hidden);
+document.getElementById("techClose").onclick = () => setTech(false);
+
+const nEintr = n => n === 1 ? "1 Eintrag" : `${n} Einträge`;
+function renderTech() {
+  const all = XAPI.statements(), n = all.length;
+  const scorm = SCORM.isLMS
+    ? "SCORM: verbunden mit einer Lernplattform."
+    : "SCORM: keine Lernplattform gefunden, die Einheit läuft frei im Browser.";
+  const xapi = XAPI.missing ? "xAPI: nicht geladen."
+    : XAPI.connected ? `xAPI: ${nEintr(n)}, davon ${XAPI.sentCount()} an einen Lernprotokoll-Speicher übertragen.`
+    : `xAPI: ${nEintr(n)}, gespeichert nur auf diesem Gerät.`;
+  document.getElementById("techStatus").textContent = scorm + " " + xapi;
+  const s = all[n - 1];
+  const d = s && describe(s, true);
+  document.getElementById("techLastText").textContent = !s ? "Noch kein Eintrag."
+    : d ? d.text : `Du ${s.verb.display["de-DE"].replace(/^hat /, "hast ")}: ${s.object.definition.name["de-DE"].replace(/^Schritt \d+: /, "")}.`;
+  document.getElementById("techLastRaw").textContent = s ? JSON.stringify(s, null, 2) : "";
+}
+
+/* Abschluss: dasselbe Durchspielen, einmal mit den Augen von SCORM, einmal mit denen von xAPI */
+function renderSees() {
+  const all = XAPI.statements();
+  const count = verb => all.filter(s => XAPI.verbKey(s) === verb).length;
+  const dfs = new Set(all.filter(s => XAPI.verbKey(s) === "commented" && s.result.extensions[XAPI.ext("denkfehler")]).map(s => s.object.id)).size;
+  const test = [...all].reverse().find(s => ["passed", "failed"].includes(XAPI.verbKey(s)));
+  const scormText = test ? `${XAPI.verbKey(test) === "passed" ? "bestanden" : "nicht bestanden"} · ${test.result.score.raw} %` : "noch kein Ergebnis";
+  document.getElementById("sees").innerHTML = `
+    <div><div class="std">SCORM sieht</div><b>${scormText}</b><p>Mehr erfährt die Lernplattform nicht.</p></div>
+    <div class="x"><div class="std">xAPI sieht</div><b>${nEintr(all.length)}</b>
+      <p>darunter: ${count("corrected")}-mal selbst korrigiert, ${dfs} Denkfehler offengelegt, ${count("probed")} ${count("probed") === 1 ? "Probe" : "Proben"} durch Einsetzen. Im Einzelnen: siehe „Dein Lernweg“.</p></div>`;
+}
+
+XAPI.onRecord(() => {
+  if (current === steps.length - 1) { renderPath(); renderSees(); }
+  if (!techPanel.hidden) renderTech();
+});
 
 XAPI.init();
 buildSheet();
