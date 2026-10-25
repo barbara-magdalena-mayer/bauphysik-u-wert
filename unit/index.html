@@ -230,9 +230,11 @@
 <header>
   <nav class="topnav" aria-label="Navigation">
     <a id="homeLink" href="https://barbara-magdalena-mayer.github.io/" hidden>← Werkstatt</a>
+    <a id="pathBack" href="https://barbara-magdalena-mayer.github.io/spiele/baukasten/" hidden>← Teil 3</a>
     <button type="button" id="restart">↺ Neu beginnen</button>
     <button type="button" id="techBtn" hidden aria-expanded="false" aria-controls="techPanel">ⓘ Informatische Bildung: SCORM &amp; xAPI</button>
   </nav>
+  <div class="kicker" id="pathKicker" hidden>Lernen am Optimum: Informatik · Teil 4 von 4</div>
   <div class="kicker">Bauphysik · Wärmeschutz</div>
   <h1>Deine Wand verliert Wärme. Wie viel?</h1>
   <div class="progress" aria-hidden="true" id="progress"></div>
@@ -1178,6 +1180,8 @@ if (location.hostname === "barbara-magdalena-mayer.github.io" || location.protoc
 if (location.hostname === "barbara-magdalena-mayer.github.io") {
   const home = "https://barbara-magdalena-mayer.github.io/";
   document.getElementById("homeLink").hidden = false;
+  document.getElementById("pathBack").hidden = false;   // Lernpfad: nur auf der Website, nicht in einer Lernplattform
+  document.getElementById("pathKicker").hidden = false;
   const st = document.createElement("style");
   st.textContent = ".bmm-figur{position:absolute;top:10px;right:12px;z-index:30;display:block;line-height:0}.bmm-figur img{height:96px;width:auto;filter:drop-shadow(0 5px 8px #0004);transition:transform .2s}.bmm-figur:hover img,.bmm-figur:focus-visible img{transform:translateY(-3px)}@media(max-width:640px){.bmm-figur{position:static;display:flex;justify-content:flex-end;padding:12px 16px 20px}.bmm-figur img{height:72px}}@media print{.bmm-figur{display:none}}";
   document.head.appendChild(st);
