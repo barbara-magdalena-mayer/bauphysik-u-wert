@@ -231,20 +231,20 @@
   <nav class="topnav" aria-label="Navigation">
     <a id="homeLink" href="https://barbara-magdalena-mayer.github.io/" hidden>← Werkstatt</a>
     <button type="button" id="restart">↺ Neu beginnen</button>
-    <button type="button" id="techBtn" hidden aria-expanded="false" aria-controls="techPanel">⚙ Technik: SCORM &amp; xAPI</button>
+    <button type="button" id="techBtn" hidden aria-expanded="false" aria-controls="techPanel">ⓘ Informatische Bildung: SCORM &amp; xAPI</button>
   </nav>
   <div class="kicker">Bauphysik · Wärmeschutz</div>
   <h1>Deine Wand verliert Wärme. Wie viel?</h1>
   <div class="progress" aria-hidden="true" id="progress"></div>
 
   <section class="tech" id="techPanel" hidden aria-labelledby="techTitle">
-    <h2 id="techTitle">Wie funktioniert das technisch?</h2>
+    <h2 id="techTitle">Wie kommt dein Ergebnis zur Lehrkraft?</h2>
     <p>Diese Einheit nutzt <strong>zwei Standards gleichzeitig</strong>. Beide melden, was beim Lernen passiert, aber sie sehen sehr Verschiedenes.</p>
     <table class="tech-table">
       <thead><tr><th scope="col">SCORM 1.2</th><th scope="col">xAPI 1.0.3</th></tr></thead>
       <tbody>
         <tr><th colspan="2" scope="colgroup">Vergleich</th></tr>
-        <tr><td>Wie ein <strong>Zeugnis</strong></td><td>Wie ein <strong>Tagebuch</strong></td></tr>
+        <tr><td>Wie ein <strong>Abnahmeprotokoll</strong>: Ist es geschafft?</td><td>Wie ein <strong>Bautagebuch</strong>: Wie ist es gelaufen?</td></tr>
         <tr><th colspan="2" scope="colgroup">Was wird gespeichert?</th></tr>
         <tr><td>Status, Punktzahl, wo man aufgehört hat, einzelne Antworten</td><td>Jede wichtige Handlung als Satz: <em>Wer – tut was – womit – mit welchem Ergebnis</em></td></tr>
         <tr><th colspan="2" scope="colgroup">Wo funktioniert es?</th></tr>
@@ -266,8 +266,7 @@
     </div>
     <p class="small">Probier es aus: Mach auf dem Arbeitsblatt absichtlich einen Fehler, korrigiere ihn und schau am Ende in „Dein Lernweg“.
       Quellcode und Dokumentation: <a href="https://github.com/barbara-magdalena-mayer/bauphysik-u-wert#lernweg-mit-xapi" target="_blank" rel="noopener">GitHub</a>.
-      Als Lernspiel in einfacher Sprache: <a href="https://barbara-magdalena-mayer.github.io/spiele/klassenbuch/" target="_blank" rel="noopener">SCORM (Teil 1)</a> und
-      <a href="https://barbara-magdalena-mayer.github.io/spiele/tagebuch/" target="_blank" rel="noopener">xAPI (Teil 3)</a> der Reihe „Wie Technik denkt“.</p>
+      Zum Ausprobieren in einfacher Sprache: <a href="https://barbara-magdalena-mayer.github.io/spiele/baukasten/" target="_blank" rel="noopener">„Wie baut man eine Lerneinheit?“</a>, Runde 4: Teile an- und ausschalten und sehen, was die Lehrkraft erfährt.</p>
     <button type="button" id="techClose">Schließen</button>
   </section>
 </header>
@@ -392,7 +391,7 @@
     <h3>Dein Erkenntnisweg</h3>
     <div class="my-notes" id="myNotes"></div>
     <div id="seesBox" hidden>
-      <h3>Was die Technik von deinem Durchlauf sieht</h3>
+      <h3>Abnahmeprotokoll und Bautagebuch von deinem Durchlauf</h3>
       <div class="sees" id="sees"></div>
     </div>
     <h3>Dein Lernweg</h3>
@@ -1152,8 +1151,8 @@ function renderSees() {
   const test = [...all].reverse().find(s => ["passed", "failed"].includes(XAPI.verbKey(s)));
   const scormText = test ? `${XAPI.verbKey(test) === "passed" ? "bestanden" : "nicht bestanden"} · ${test.result.score.raw} %` : "noch kein Ergebnis";
   document.getElementById("sees").innerHTML = `
-    <div><div class="std">SCORM sieht</div><b>${scormText}</b><p>Mehr erfährt die Lernplattform nicht.</p></div>
-    <div class="x"><div class="std">xAPI sieht</div><b>${nEintr(all.length)}</b>
+    <div><div class="std">Abnahmeprotokoll · SCORM</div><b>${scormText}</b><p>Mehr erfährt die Lernplattform nicht.</p></div>
+    <div class="x"><div class="std">Bautagebuch · xAPI</div><b>${nEintr(all.length)}</b>
       <p>darunter: ${count("corrected")}-mal selbst korrigiert, ${dfs} Denkfehler offengelegt, ${count("probed")} ${count("probed") === 1 ? "Probe" : "Proben"} durch Einsetzen. Im Einzelnen: siehe „Dein Lernweg“.</p></div>`;
 }
 
