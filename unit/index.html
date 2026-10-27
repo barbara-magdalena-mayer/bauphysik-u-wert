@@ -223,6 +223,15 @@
     section.step { padding: 14px; }
     .topnav { padding-right: 0; }
   }
+.spielende{margin:28px 0 8px;padding:20px 18px;border:3px solid #2f5240;border-radius:16px;background:#e3efe7;color:#1d2b22;max-width:640px}
+.spielende .se-kopf{font-size:15px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#2f5240;margin:0 0 4px}
+.spielende .se-titel{font-size:24px;line-height:1.25;margin:0 0 6px;font-weight:700}
+.spielende p{margin:0 0 12px}
+.spielende .se-knoepfe{display:flex;flex-wrap:wrap;gap:10px}
+.spielende .se-k{font:inherit;font-size:19px;font-weight:600;border-radius:12px;padding:12px 20px;cursor:pointer;text-decoration:none;display:inline-block;border:2px solid #2f5240;background:#fff;color:#2f5240}
+.spielende .se-k[hidden]{display:none}
+@media(max-width:480px){.spielende .se-k{width:100%;text-align:center}}
+@media (prefers-color-scheme: dark){.spielende{background:#1d3127;border-color:#7cc7a0;color:#efe6e9}.spielende .se-kopf{color:#a8f0c8}.spielende .se-k{border-color:#7cc7a0;background:#241d20;color:#a8f0c8}}
 </style>
 </head>
 <body>
@@ -414,6 +423,15 @@
       <li>Welche Rolle spielt die Lage der Dämmung (innen oder außen) für Tauwasser in der Wand?</li>
     </ul>
     <p id="lmsNote" class="small"></p>
+    <section class="spielende" aria-label="Ende der Lerneinheit">
+      <p class="se-kopf">✓ Ende</p>
+      <p class="se-titel">Teil 4 ist fertig. Du bist am Ende des Lernpfads.</p>
+      <p id="endText">Wie geht es weiter? Beginne noch einmal von vorn oder geh zurück zur Werkstatt.</p>
+      <div class="se-knoepfe">
+        <button type="button" class="se-k se-neu" id="endNeu">↺ Neu beginnen</button>
+        <a class="se-k se-werk" id="endHome" href="https://barbara-magdalena-mayer.github.io/" hidden>← Zurück zur Werkstatt</a>
+      </div>
+    </section>
   </section>
 
   <div class="nav">
@@ -925,6 +943,21 @@ restart.onclick = () => {
   }
   clearTimeout(armed); armed = null;
   restart.classList.remove("armed"); restart.textContent = "↺ Neu beginnen";
+  doRestart();
+};
+/* Neu beginnen am Ende: ebenfalls zweimal tippen, weil alles gelöscht wird */
+const endNeu = document.getElementById("endNeu");
+let endArmed = null;
+endNeu.onclick = () => {
+  if (!endArmed) {
+    endNeu.textContent = "Wirklich? Alles zurücksetzen";
+    endArmed = setTimeout(() => { endArmed = null; endNeu.textContent = "↺ Neu beginnen"; }, 4000);
+    return;
+  }
+  clearTimeout(endArmed); endArmed = null; endNeu.textContent = "↺ Neu beginnen";
+  doRestart(); window.scrollTo({ top: 0 });
+};
+function doRestart() {
   cols = defaultCols(); notes = {};
   document.getElementById("noteMain").value = "";
   document.getElementById("noteRules").value = "";
@@ -1177,12 +1210,17 @@ if (location.hostname === "barbara-magdalena-mayer.github.io" || location.protoc
   document.getElementById("techBtn").hidden = false;
   document.getElementById("seesBox").hidden = false;
 }
+/* In einer Lernplattform gibt es keine Werkstatt: dort heißt das Ende „schließen“. */
+if (location.hostname !== "barbara-magdalena-mayer.github.io") {
+  document.getElementById("endText").textContent = "Du kannst die Einheit jetzt schließen. Oder du beginnst noch einmal von vorn.";
+}
 /* Nur auf der Werkstatt-Website: Rückweg und Figur. In einer Lernplattform bleibt beides weg. */
 if (location.hostname === "barbara-magdalena-mayer.github.io") {
   const home = "https://barbara-magdalena-mayer.github.io/";
   document.getElementById("homeLink").hidden = false;
   document.getElementById("pathBack").hidden = false;   // Lernpfad: nur auf der Website, nicht in einer Lernplattform
   document.getElementById("pathKicker").hidden = false;
+  document.getElementById("endHome").hidden = false;
   const st = document.createElement("style");
   st.textContent = ".bmm-figur{position:absolute;top:10px;right:12px;z-index:30;display:block;line-height:0}.bmm-figur img{height:96px;width:auto;filter:drop-shadow(0 5px 8px #0004);transition:transform .2s}.bmm-figur:hover img,.bmm-figur:focus-visible img{transform:translateY(-3px)}@media(max-width:640px){.bmm-figur{position:static;display:flex;justify-content:flex-end;padding:12px 16px 20px}.bmm-figur img{height:72px}}@media print{.bmm-figur{display:none}}";
   document.head.appendChild(st);

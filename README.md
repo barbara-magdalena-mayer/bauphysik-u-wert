@@ -27,7 +27,7 @@ Eine interaktive Lerneinheit zum Wärmeschutz. Lernende sanieren eine Altbauwand
 4. **Abschlusstest**: vier Fragen mit Erklärungen. Bei jeder falschen Antwort erklären die Lernenden zuerst ihren eigenen Denkfehler, wie in einer mündlichen Prüfung. Erst dann sehen sie den typischen Denkfehler zu ihrer Antwort und können erneut auswerten oder weitergehen.
 5. **Abschluss**: Antwort auf den Kundenauftrag, der eigene Erkenntnisweg (Erkenntnisse, Regeln, Proben, eigene Denkfehler), der **Lernweg** aus dem xAPI-Protokoll (siehe unten), Fragen zum Weiterdenken
 
-Oben gibt es immer „↺ Neu beginnen“ (zweimal tippen) und auf der Website „← Werkstatt“. Spalten und Notizen bleiben auf dem eigenen Gerät gespeichert, in einer Lernplattform zusätzlich in `cmi.suspend_data`.
+Oben gibt es immer „↺ Neu beginnen“ (zweimal tippen) und auf der Website „← Werkstatt“. Am Ende des Abschlusses steht ein klarer Ende-Kasten: „↺ Neu beginnen“ und auf der Website „← Zurück zur Werkstatt“; in einer Lernplattform heißt es dort „Du kannst die Einheit jetzt schließen“. Spalten und Notizen bleiben auf dem eigenen Gerät gespeichert, in einer Lernplattform zusätzlich in `cmi.suspend_data`.
 
 ## Didaktische Idee
 
